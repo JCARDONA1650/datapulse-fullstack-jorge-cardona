@@ -41,6 +41,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.core.middleware.LoggingRequestsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -134,3 +135,21 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 
 WORLDBANK_API_BASE_URL = env('WORLDBANK_API_BASE_URL', default='https://api.worldbank.org/v2')
 EXCHANGERATE_API_BASE_URL = env('EXCHANGERATE_API_BASE_URL', default='https://api.exchangerate-api.com/v4')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {'format': '[{asctime}] {levelname} {name}: {message}', 'style': '{'},
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'},
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
