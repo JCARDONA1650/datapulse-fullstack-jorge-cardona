@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
 
 from apps.paises.seed import crear_indicadores, crear_paises, crear_tipos_cambio
+from apps.riesgo.models import IndiceRiesgo
+from apps.riesgo.services import calcular_irpc_todos
 from apps.usuarios.models import Usuario
 
 USUARIOS_INICIALES = [
@@ -25,6 +27,10 @@ class Command(BaseCommand):
 
         crear_tipos_cambio()
         self.stdout.write('Historico de tipo de cambio creado (30 dias)')
+
+        IndiceRiesgo.objects.all().delete()
+        calcular_irpc_todos()
+        self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises')
 
     def crear_usuarios(self):
         for datos in USUARIOS_INICIALES:
