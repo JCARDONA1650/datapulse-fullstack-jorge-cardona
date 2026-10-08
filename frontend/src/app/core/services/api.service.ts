@@ -25,6 +25,10 @@ export class ApiService {
     return this.http.delete<T>(`${this.baseUrl}${path}`);
   }
 
+  getBlob(path: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}${path}`, { responseType: 'blob' });
+  }
+
   private limpiarParams(params?: object): Record<string, string> | undefined {
     if (!params) {
       return undefined;
