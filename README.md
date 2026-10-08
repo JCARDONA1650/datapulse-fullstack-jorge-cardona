@@ -78,7 +78,13 @@ Aplicación disponible en `http://localhost:4200/`.
 
 ## Cómo ejecutar los tests
 
-_Pendiente – se agrega al cerrar la fase de testing._
+```
+cd backend
+python manage.py test
+
+cd frontend
+npm test -- --watch=false --browsers=ChromeHeadless
+```
 
 ## Endpoints
 
@@ -86,7 +92,8 @@ Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o 
 
 ## Manejo de errores
 
-_Pendiente – se agrega al cerrar la fase de autenticación / manejo de errores transversal._
+- **Backend**: `apps/core/exceptions.py` define un manejador de excepciones de DRF que estandariza toda respuesta de error como `{"error": true, "status_code": ..., "mensaje": ...}`. Un middleware propio (`apps/core/middleware.py`) registra en el logger `apps.requests` el método, path, usuario y duración de cada request. Las acciones de login quedan en el modelo `LogActividad`.
+- **Frontend**: `core/interceptors/error.interceptor.ts` muestra un snackbar ante errores de red, 403, 404 y 5xx, y redirige a `/login` con un mensaje claro cuando el token expira (401). Los errores 400 (validaciones de formulario) se dejan pasar para que cada componente los asocie al campo correspondiente.
 
 ## Despliegue
 
@@ -94,7 +101,13 @@ _Pendiente._
 
 ## Credenciales de prueba
 
-_Pendiente – se agrega al cerrar la fase de seed de datos._
+Ejecutar `python manage.py seed_data` (por ahora crea los 3 usuarios; países, indicadores y portafolios se agregan en fases posteriores del seed):
+
+| Email | Password | Rol |
+|---|---|---|
+| admin@datapulse.com | DataPulse2026! | ADMIN |
+| analista@datapulse.com | DataPulse2026! | ANALISTA |
+| viewer@datapulse.com | DataPulse2026! | VIEWER |
 
 ## Puntos ambiguos resueltos
 
