@@ -1,0 +1,63 @@
+<div class="panel-alertas-container">
+  <div class="encabezado">
+    <h1>Alertas</h1>
+    <button mat-stroked-button (click)="marcarTodasLeidas()">Marcar todas como leidas</button>
+  </div>
+
+  <div class="filtros">
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo</mat-label>
+      <mat-select [formControl]="tipoAlerta">
+        <mat-option value="">Todos</mat-option>
+        <mat-option value="RIESGO">Riesgo</mat-option>
+        <mat-option value="TIPO_CAMBIO">Tipo de cambio</mat-option>
+        <mat-option value="INDICADOR">Indicador</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Severidad</mat-label>
+      <mat-select [formControl]="severidad">
+        <mat-option value="">Todas</mat-option>
+        <mat-option value="INFO">Info</mat-option>
+        <mat-option value="WARNING">Warning</mat-option>
+        <mat-option value="CRITICAL">Critical</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [formControl]="leida">
+        <mat-option value="">Todas</mat-option>
+        <mat-option value="false">No leidas</mat-option>
+        <mat-option value="true">Leidas</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (respuesta() === null) {
+    <mat-spinner />
+  } @else if (respuesta()!.results.length === 0) {
+    <p class="estado-vacio">No hay alertas con esos filtros.</p>
+  } @else {
+    <div class="lista-alertas">
+      @for (alerta of respuesta()!.results; track alerta.id) {
+        <mat-card [class.no-leida]="!alerta.leida">
+          <div class="fila-alerta">
+            <mat-icon [style.color]="colorPorSeveridad[alerta.severidad]">{{ iconoPorSeveridad[alerta.severidad] }}</mat-icon>
+            <div class="contenido">
+              <strong>{{ alerta.titulo }}</strong>
+              <p>{{ alerta.mensaje }}</p>
+              <span class="meta">{{ alerta.pais_nombre }} - {{ alerta.fecha_creacion | date: 'short' }}</span>
+            </div>
+            @if (!alerta.leida) {
+              <button mat-icon-button (click)="marcarLeida(alerta)" aria-label="Marcar como leida">
+                <mat-icon>done</mat-icon>
+              </button>
+            }
+          </div>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

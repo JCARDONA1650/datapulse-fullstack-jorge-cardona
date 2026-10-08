@@ -1,0 +1,10 @@
+<button
+  mat-icon-button
+  [matBadge]="noLeidas() > 0 ? noLeidas() : undefined"
+  matBadgeColor="warn"
+  matBadgeSize="small"
+  (click)="irAAlertas()"
+  aria-label="Alertas"
+>
+  <mat-icon>notifications</mat-icon>
+</button>

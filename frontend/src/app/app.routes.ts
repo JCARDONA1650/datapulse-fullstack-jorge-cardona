@@ -16,5 +16,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () => import('./modules/paises/paises.routes').then((m) => m.paisesRoutes),
   },
+  {
+    path: 'alertas',
+    canActivate: [authGuard],
+    loadChildren: () => import('./modules/alertas/alertas.routes').then((m) => m.alertasRoutes),
+  },
   { path: '**', loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound) },
 ];
