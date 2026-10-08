@@ -20,6 +20,7 @@ Prueba técnica Fullstack (Angular + Django) para Mission S.A.S.
 - **Angular standalone en vez de NgModules**: menos boilerplate, es el estilo recomendado por el equipo de Angular desde la v15+ y el requerimiento solo exige Angular 12+, sin especificar el estilo.
 - **Management commands en vez de Celery + Redis**: las 3 tareas (sincronización de indicadores, recálculo de IRPC, tipos de cambio) se ejecutan bajo demanda o por cron, sin necesidad de una cola de tareas. Esto simplifica el despliegue (sin Redis ni worker adicional) y el requerimiento lo permite explícitamente.
 - **PostgreSQL en Docker para desarrollo local**: se reutiliza el mismo `docker-compose.yml` que suma puntos extra, evitando instalar PostgreSQL de forma nativa.
+- **ADMIN puede editar/eliminar cualquier portafolio**, no solo los propios (un ANALISTA solo gestiona los suyos). Es la única lectura que hace consistente el escenario de prueba obligatorio #5 ("dos usuarios editan el mismo portafolio público"): sin esta regla, un portafolio solo lo puede editar su dueño y la concurrencia entre dos usuarios distintos nunca podría darse.
 - Resolución de los puntos ambiguos de los requerimientos: ver sección [Puntos ambiguos resueltos](#puntos-ambiguos-resueltos).
 
 ## Arquitectura
@@ -80,7 +81,7 @@ Aplicación disponible en `http://localhost:4200/`.
 
 ```
 cd backend
-python manage.py test        # 51 tests (auth + paises + riesgo + alertas)
+python manage.py test        # 72 tests (auth + paises + riesgo + alertas + portafolios)
 
 cd frontend
 npm test -- --watch=false --browsers=ChromeHeadless
