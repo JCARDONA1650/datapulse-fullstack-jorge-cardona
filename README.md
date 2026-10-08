@@ -80,7 +80,7 @@ Aplicación disponible en `http://localhost:4200/`.
 
 ```
 cd backend
-python manage.py test
+python manage.py test        # 20 tests (auth + paises)
 
 cd frontend
 npm test -- --watch=false --browsers=ChromeHeadless
@@ -89,6 +89,15 @@ npm test -- --watch=false --browsers=ChromeHeadless
 ## Endpoints
 
 Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o en la URL desplegada (ver [Despliegue](#despliegue)).
+
+## Tareas programadas
+
+```
+python manage.py sync_indicadores     # World Bank, 10 paises x 6 indicadores
+python manage.py sync_tipos_cambio    # ExchangeRate-API, tasa diaria
+```
+
+Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaza los valores de ejemplo de Colombia (usados en el caso de prueba del IRPC) por datos reales de las APIs.
 
 ## Manejo de errores
 
@@ -101,7 +110,7 @@ _Pendiente._
 
 ## Credenciales de prueba
 
-Ejecutar `python manage.py seed_data` (por ahora crea los 3 usuarios; países, indicadores y portafolios se agregan en fases posteriores del seed):
+Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores y 30 dias de tipo de cambio; portafolios se agregan en una fase posterior del seed):
 
 | Email | Password | Rol |
 |---|---|---|
@@ -122,3 +131,7 @@ El requerimiento (`HU_GLOBAL.md`, sección 13) señala 9 puntos no definidos exp
 7. **Alertas globales**: un solo registro compartido (`usuario` null); al marcar `leida`, se marca para todos los que la ven.
 8. **`Usuario.activo` vs `is_active`**: se reutiliza `is_active` de `AbstractUser`; no se duplica el campo. El serializer expone `activo` como alias de `is_active`.
 9. **Concurrencia en portafolios**: optimistic locking simple. El cliente envía `fecha_modificacion` tal como la recibió; si no coincide con la del servidor al guardar, se responde `409 Conflict` con un mensaje claro.
+
+## Inconsistencia detectada en el caso de prueba del IRPC
+
+La tabla de brackets del Score Economico define Inflacion como `>10 -> -25`, `>5 -> -10`. El caso de prueba obligatorio de Colombia usa Inflacion = 9.2 (que cae en el bracket `>5`, penalizacion -10) pero el documento indica que la penalizacion debe ser -25 para que el Score Economico final de 45. Con la formula aplicada literalmente el resultado es Score Economico = 60 e IRPC = 75 (BAJO), no 69 (MODERADO) como indica el documento. Resolucion aplicada: _pendiente, se define al implementar el calculo del IRPC_.
