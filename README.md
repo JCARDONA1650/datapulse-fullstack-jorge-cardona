@@ -80,7 +80,7 @@ Aplicación disponible en `http://localhost:4200/`.
 
 ```
 cd backend
-python manage.py test        # 20 tests (auth + paises)
+python manage.py test        # 37 tests (auth + paises + riesgo)
 
 cd frontend
 npm test -- --watch=false --browsers=ChromeHeadless
@@ -95,6 +95,7 @@ Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o 
 ```
 python manage.py sync_indicadores     # World Bank, 10 paises x 6 indicadores
 python manage.py sync_tipos_cambio    # ExchangeRate-API, tasa diaria
+python manage.py calcular_riesgo      # IRPC de los 10 paises
 ```
 
 Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaza los valores de ejemplo de Colombia (usados en el caso de prueba del IRPC) por datos reales de las APIs.
