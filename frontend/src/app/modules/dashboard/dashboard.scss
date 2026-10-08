@@ -1,7 +1,20 @@
 .dashboard-container {
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fila-dos-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
 
   mat-card {
-    padding: 24px;
+    padding: 16px;
   }
+}
+
+.tarjeta-tendencias {
+  padding: 16px;
 }
