@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/riesgo/', include('apps.riesgo.urls')),
     path('api/alertas/', include('apps.alertas.urls')),
     path('api/portafolios/', include('apps.portafolios.urls')),
+    path('api/dashboard/', include('apps.dashboard.urls')),
 ]

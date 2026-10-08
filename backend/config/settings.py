@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'apps.portafolios',
     'apps.riesgo',
     'apps.alertas',
+    'apps.dashboard',
 ]
 
 MIDDLEWARE = [
