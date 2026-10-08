@@ -1,0 +1,10 @@
+.filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+canvas {
+  max-height: 320px;
+}

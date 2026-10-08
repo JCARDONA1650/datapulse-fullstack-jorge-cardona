@@ -1,0 +1,33 @@
+<table mat-table [dataSource]="ranking()" class="tabla-ranking">
+  <ng-container matColumnDef="pais_nombre">
+    <th mat-header-cell *matHeaderCellDef>Pais</th>
+    <td mat-cell *matCellDef="let fila">{{ fila.pais_nombre }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="indice_compuesto">
+    <th mat-header-cell *matHeaderCellDef>IRPC</th>
+    <td mat-cell *matCellDef="let fila">{{ fila.indice_compuesto }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="nivel_riesgo">
+    <th mat-header-cell *matHeaderCellDef>Nivel</th>
+    <td mat-cell *matCellDef="let fila" [style.color]="fila.color">{{ fila.nivel_riesgo }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="variacion">
+    <th mat-header-cell *matHeaderCellDef>Variacion</th>
+    <td mat-cell *matCellDef="let fila">
+      {{ fila.variacion !== null ? (fila.variacion | number: '1.2-2') : '-' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="tendencia">
+    <th mat-header-cell *matHeaderCellDef>Tendencia</th>
+    <td mat-cell *matCellDef="let fila">
+      <mat-icon>{{ icono(fila.variacion) }}</mat-icon>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+  <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+</table>

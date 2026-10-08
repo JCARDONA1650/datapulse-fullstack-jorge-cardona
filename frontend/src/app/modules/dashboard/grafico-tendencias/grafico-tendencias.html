@@ -1,0 +1,21 @@
+<div class="filtros">
+  <mat-form-field appearance="outline">
+    <mat-label>Indicador</mat-label>
+    <mat-select [formControl]="tipoSeleccionado">
+      @for (tipo of tiposIndicador; track tipo) {
+        <mat-option [value]="tipo">{{ etiquetasTipo[tipo] }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Paises (maximo {{ maximoPaises }})</mat-label>
+    <mat-select [formControl]="paisesSeleccionados" multiple>
+      @for (pais of paises()?.results ?? []; track pais.codigo_iso) {
+        <mat-option [value]="pais.codigo_iso">{{ pais.nombre }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<canvas baseChart [data]="datosGrafico()" type="line"></canvas>

@@ -1,0 +1,18 @@
+<div class="kpi-grid">
+  <mat-card>
+    <mat-card-subtitle>Paises monitoreados</mat-card-subtitle>
+    <mat-card-title>{{ resumen()?.total_paises_monitoreados ?? '-' }}</mat-card-title>
+  </mat-card>
+  <mat-card>
+    <mat-card-subtitle>Alertas activas</mat-card-subtitle>
+    <mat-card-title>{{ resumen()?.alertas_activas ?? '-' }}</mat-card-title>
+  </mat-card>
+  <mat-card>
+    <mat-card-subtitle>Mis portafolios</mat-card-subtitle>
+    <mat-card-title>{{ resumen()?.portafolios_usuario ?? '-' }}</mat-card-title>
+  </mat-card>
+  <mat-card>
+    <mat-card-subtitle>Promedio IRPC region</mat-card-subtitle>
+    <mat-card-title>{{ resumen()?.promedio_irpc_region ?? '-' }}</mat-card-title>
+  </mat-card>
+</div>
