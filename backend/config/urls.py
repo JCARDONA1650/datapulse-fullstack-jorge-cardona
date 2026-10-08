@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/paises/', include('apps.paises.urls')),
     path('api/riesgo/', include('apps.riesgo.urls')),
     path('api/alertas/', include('apps.alertas.urls')),
+    path('api/portafolios/', include('apps.portafolios.urls')),
 ]
