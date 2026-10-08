@@ -21,5 +21,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () => import('./modules/alertas/alertas.routes').then((m) => m.alertasRoutes),
   },
+  {
+    path: 'portafolios',
+    canActivate: [authGuard],
+    loadChildren: () => import('./modules/portafolios/portafolios.routes').then((m) => m.portafoliosRoutes),
+  },
   { path: '**', loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound) },
 ];
