@@ -80,7 +80,7 @@ Aplicación disponible en `http://localhost:4200/`.
 
 ```
 cd backend
-python manage.py test        # 37 tests (auth + paises + riesgo)
+python manage.py test        # 51 tests (auth + paises + riesgo + alertas)
 
 cd frontend
 npm test -- --watch=false --browsers=ChromeHeadless
