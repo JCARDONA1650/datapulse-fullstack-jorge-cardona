@@ -1,0 +1,10 @@
+<div class="dashboard-container">
+  <mat-card>
+    @if (usuario$ | async; as usuario) {
+      <h1>Bienvenido, {{ usuario.nombre_completo }}</h1>
+      <p>Email: {{ usuario.email }}</p>
+      <p>Rol: {{ usuario.rol }}</p>
+    }
+    <button mat-flat-button color="primary" (click)="cerrarSesion()">Cerrar sesion</button>
+  </mat-card>
+</div>
