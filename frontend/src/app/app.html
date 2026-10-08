@@ -1,2 +1,5 @@
 <app-loading-spinner />
+@if (usuario$ | async) {
+  <app-navbar />
+}
 <router-outlet />

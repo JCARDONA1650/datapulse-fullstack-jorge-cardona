@@ -1,0 +1,10 @@
+<mat-toolbar color="primary">
+  <span class="marca" routerLink="/dashboard">DataPulse Latam</span>
+  <span class="espacio"></span>
+  <a mat-button routerLink="/dashboard">Dashboard</a>
+  <a mat-button routerLink="/paises">Paises</a>
+  @if (usuario$ | async; as usuario) {
+    <span class="usuario">{{ usuario.nombre_completo }}</span>
+    <button mat-button (click)="cerrarSesion()">Salir</button>
+  }
+</mat-toolbar>

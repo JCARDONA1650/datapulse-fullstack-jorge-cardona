@@ -2,9 +2,8 @@
   <mat-card>
     @if (usuario$ | async; as usuario) {
       <h1>Bienvenido, {{ usuario.nombre_completo }}</h1>
-      <p>Email: {{ usuario.email }}</p>
       <p>Rol: {{ usuario.rol }}</p>
     }
-    <button mat-flat-button color="primary" (click)="cerrarSesion()">Cerrar sesion</button>
+    <p>El dashboard completo (mapa de riesgo, KPIs, ranking y tendencias) se agrega en una fase posterior.</p>
   </mat-card>
 </div>
