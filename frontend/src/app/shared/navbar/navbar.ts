@@ -4,11 +4,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink } from '@angular/router';
 
+import { AlertaBadge } from '../../modules/alertas/alerta-badge/alerta-badge';
 import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [AsyncPipe, RouterLink, MatToolbarModule, MatButtonModule],
+  imports: [AsyncPipe, RouterLink, MatToolbarModule, MatButtonModule, AlertaBadge],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })

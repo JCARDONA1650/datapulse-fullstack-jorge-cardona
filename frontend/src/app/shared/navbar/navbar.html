@@ -3,7 +3,9 @@
   <span class="espacio"></span>
   <a mat-button routerLink="/dashboard">Dashboard</a>
   <a mat-button routerLink="/paises">Paises</a>
+  <a mat-button routerLink="/alertas">Alertas</a>
   @if (usuario$ | async; as usuario) {
+    <app-alerta-badge />
     <span class="usuario">{{ usuario.nombre_completo }}</span>
     <button mat-button (click)="cerrarSesion()">Salir</button>
   }
