@@ -1,0 +1,91 @@
+@if (portafolio() === null) {
+  <mat-spinner />
+} @else {
+  <div class="detalle-container">
+    <div class="encabezado">
+      <div>
+        <h1>{{ portafolio()!.nombre }}</h1>
+        <p>{{ portafolio()!.descripcion || 'Sin descripcion' }}</p>
+      </div>
+      <button mat-stroked-button (click)="exportarPdf()">
+        <mat-icon>download</mat-icon>
+        Exportar PDF
+      </button>
+    </div>
+
+    @if (resumen(); as r) {
+      <div class="tarjetas-metricas">
+        <mat-card>
+          <mat-card-subtitle>Monto total invertido</mat-card-subtitle>
+          <mat-card-title>USD {{ r.monto_total_usd | number }}</mat-card-title>
+        </mat-card>
+        <mat-card>
+          <mat-card-subtitle>Riesgo promedio ponderado (IRPC)</mat-card-subtitle>
+          <mat-card-title>{{ r.riesgo_promedio_ponderado ?? '-' }}</mat-card-title>
+        </mat-card>
+      </div>
+
+      <div class="graficos">
+        <mat-card>
+          <mat-card-subtitle>Distribucion por pais</mat-card-subtitle>
+          <app-distribucion-chart [datos]="r.distribucion_por_pais" tipo="pie" />
+        </mat-card>
+        <mat-card>
+          <mat-card-subtitle>Distribucion por tipo de activo</mat-card-subtitle>
+          <app-distribucion-chart [datos]="r.distribucion_por_tipo_activo" tipo="doughnut" />
+        </mat-card>
+      </div>
+    }
+
+    <div class="encabezado-posiciones">
+      <h2>Posiciones</h2>
+      @if (puedeGestionar()) {
+        <button mat-flat-button color="primary" (click)="agregarPosicion()">Agregar posicion</button>
+      }
+    </div>
+
+    <table mat-table [dataSource]="portafolio()!.posiciones" class="tabla-posiciones">
+      <ng-container matColumnDef="pais_nombre">
+        <th mat-header-cell *matHeaderCellDef>Pais</th>
+        <td mat-cell *matCellDef="let p">{{ p.pais_nombre }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="tipo_activo">
+        <th mat-header-cell *matHeaderCellDef>Tipo</th>
+        <td mat-cell *matCellDef="let p">{{ p.tipo_activo }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="monto_inversion_usd">
+        <th mat-header-cell *matHeaderCellDef>Monto USD</th>
+        <td mat-cell *matCellDef="let p">{{ p.monto_inversion_usd | number }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fecha_entrada">
+        <th mat-header-cell *matHeaderCellDef>Entrada</th>
+        <td mat-cell *matCellDef="let p">{{ p.fecha_entrada }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fecha_salida">
+        <th mat-header-cell *matHeaderCellDef>Salida</th>
+        <td mat-cell *matCellDef="let p">{{ p.fecha_salida ?? '-' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p">
+          @if (puedeGestionar() && !p.fecha_salida) {
+            <button mat-icon-button (click)="editarPosicion(p)" aria-label="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cerrarPosicion(p)" aria-label="Cerrar posicion">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnasPosiciones"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnasPosiciones"></tr>
+    </table>
+  </div>
+}
