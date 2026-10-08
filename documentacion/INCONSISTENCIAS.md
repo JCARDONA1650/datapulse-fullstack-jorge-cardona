@@ -24,4 +24,16 @@ Registro de contradicciones o ambigüedades reales encontradas en `HU_GLOBAL.md`
 
 ---
 
+## 2. `Alerta.pais` obligatorio vs. la regla 4 de HU-15 (Fase 4)
+
+**Dónde:** `HU_GLOBAL.md`, sección 4 (modelo `Alerta`, campo `pais` FK sin marcar como nullable) y Épica 5, HU-15, regla 4: "INFO: nuevos datos económicos disponibles tras sincronización".
+
+**Qué pasa:** esa alerta describe el resultado de **todo un lote** de sincronización (varios países a la vez), no un evento de un país específico. Pero el modelo exige `pais` en cada `Alerta`, así que no hay forma de crear una sola alerta "global" para el lote sin dejar `pais` vacío.
+
+**Decisión tomada:** generar una alerta INFO independiente por cada país que recibió datos nuevos en esa sincronización, en vez de una sola alerta para todo el lote. Cumple el modelo tal como está escrito y es, si acaso, más informativo (se sabe exactamente qué país tiene datos nuevos).
+
+**Forma óptima de resolverlo:** si el negocio realmente quiere una sola alerta resumen por corrida de sincronización, habría que volver `Alerta.pais` nullable (como ya es `usuario`) — eso sí es un cambio de modelo, por lo que no lo hice sin consultar.
+
+---
+
 <!-- Agregar nuevos hallazgos abajo, con el mismo formato, a medida que aparezcan en fases posteriores. -->
