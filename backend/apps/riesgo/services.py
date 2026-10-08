@@ -1,9 +1,17 @@
 import statistics
 
+from django.db.models import OuterRef, Subquery
+
 from apps.alertas.services import evaluar_alerta_inflacion, evaluar_alertas_riesgo
 from apps.paises.models import IndicadorEconomico, Pais
 
 from .models import IndiceRiesgo
+
+
+def ultimos_indices_queryset():
+    """Un IndiceRiesgo por pais: el mas reciente de su historico."""
+    ultimo_id = IndiceRiesgo.objects.filter(pais=OuterRef('pais')).order_by('-fecha_calculo').values('id')[:1]
+    return IndiceRiesgo.objects.filter(id=Subquery(ultimo_id)).select_related('pais')
 
 INDICADORES_EN_RIESGO_CANDIDATOS = [
     IndicadorEconomico.Tipo.INFLACION,

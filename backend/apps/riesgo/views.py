@@ -1,4 +1,3 @@
-from django.db.models import OuterRef, Subquery
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -7,7 +6,7 @@ from apps.core.permissions import EsAdmin
 
 from .models import IndiceRiesgo
 from .serializers import IndiceRiesgoSerializer
-from .services import calcular_irpc_todos
+from .services import calcular_irpc_todos, ultimos_indices_queryset
 
 
 class RiesgoViewSet(GenericViewSet):
@@ -18,14 +17,7 @@ class RiesgoViewSet(GenericViewSet):
         return IndiceRiesgo.objects.select_related('pais').all()
 
     def list(self, request):
-        ultimo_id = (
-            IndiceRiesgo.objects.filter(pais=OuterRef('pais')).order_by('-fecha_calculo').values('id')[:1]
-        )
-        queryset = (
-            IndiceRiesgo.objects.filter(id=Subquery(ultimo_id))
-            .select_related('pais')
-            .order_by('-indice_compuesto')
-        )
+        queryset = ultimos_indices_queryset().order_by('-indice_compuesto')
         pagina = self.paginate_queryset(queryset)
         serializer = self.get_serializer(pagina, many=True)
         return self.get_paginated_response(serializer.data)
