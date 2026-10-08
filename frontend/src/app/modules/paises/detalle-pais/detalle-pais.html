@@ -1,0 +1,42 @@
+@if (pais() === null) {
+  <mat-spinner />
+} @else {
+  <div class="detalle-pais-container">
+    <div class="encabezado">
+      <img [src]="bandera(pais()!.codigo_iso)" [alt]="pais()!.nombre" />
+      <div>
+        <h1>{{ pais()!.nombre }}</h1>
+        <p>{{ pais()!.moneda_nombre }} ({{ pais()!.moneda_codigo }}) - {{ pais()!.region }}</p>
+        <p>Poblacion: {{ pais()!.poblacion | number }}</p>
+      </div>
+    </div>
+
+    <div class="tarjetas-indicadores">
+      @for (tipo of tiposIndicador; track tipo) {
+        @if (indicadoresActuales().get(tipo); as indicador) {
+          <mat-card>
+            <mat-card-subtitle>{{ etiquetasTipo[tipo] }} ({{ indicador.anio }})</mat-card-subtitle>
+            <mat-card-title>{{ indicador.valor }} {{ indicador.unidad }}</mat-card-title>
+          </mat-card>
+        }
+      }
+    </div>
+
+    <mat-card class="tarjeta-grafico">
+      <mat-form-field appearance="outline">
+        <mat-label>Indicador</mat-label>
+        <mat-select [formControl]="tipoSeleccionado">
+          @for (tipo of tiposIndicador; track tipo) {
+            <mat-option [value]="tipo">{{ etiquetasTipo[tipo] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <canvas baseChart [data]="datosGraficoIndicador()" type="line"></canvas>
+    </mat-card>
+
+    <mat-card class="tarjeta-grafico">
+      <mat-card-subtitle>Tipo de cambio - ultimos 30 dias</mat-card-subtitle>
+      <canvas baseChart [data]="datosGraficoTipoCambio()" type="line"></canvas>
+    </mat-card>
+  </div>
+}

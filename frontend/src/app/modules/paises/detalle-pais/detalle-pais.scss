@@ -1,0 +1,31 @@
+.detalle-pais-container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  img {
+    width: 64px;
+    border-radius: 4px;
+  }
+}
+
+.tarjetas-indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.tarjeta-grafico {
+  padding: 16px;
+
+  canvas {
+    max-height: 300px;
+  }
+}

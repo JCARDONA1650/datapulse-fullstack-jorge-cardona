@@ -11,5 +11,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./modules/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'paises',
+    canActivate: [authGuard],
+    loadChildren: () => import('./modules/paises/paises.routes').then((m) => m.paisesRoutes),
+  },
   { path: '**', loadComponent: () => import('./shared/not-found/not-found').then((m) => m.NotFound) },
 ];
