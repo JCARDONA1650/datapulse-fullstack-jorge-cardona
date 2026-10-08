@@ -4,6 +4,8 @@ import requests
 from django.conf import settings
 from django.utils import timezone
 
+from apps.alertas.services import evaluar_alerta_tipo_cambio, generar_alertas_sincronizacion
+
 from .models import IndicadorEconomico, Pais, TipoCambio
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,7 @@ def sincronizar_indicadores():
         'Fin de sincronizacion de indicadores: %s paises ok, %s errores',
         len(paises_procesados), len(errores),
     )
+    generar_alertas_sincronizacion(paises_procesados)
     return {'paises_procesados': paises_procesados, 'errores': errores}
 
 
@@ -108,7 +111,7 @@ def sincronizar_tipos_cambio():
             if anterior and anterior.tasa:
                 variacion = (tasa - float(anterior.tasa)) / float(anterior.tasa) * 100
 
-            TipoCambio.objects.update_or_create(
+            tipo_cambio, _ = TipoCambio.objects.update_or_create(
                 moneda_origen=pais,
                 fecha=fecha,
                 defaults={
@@ -118,6 +121,7 @@ def sincronizar_tipos_cambio():
                     'fuente': TipoCambio.Fuente.EXCHANGERATE_API,
                 },
             )
+            evaluar_alerta_tipo_cambio(tipo_cambio)
             paises_procesados.append(pais.codigo_iso)
         except Exception as exc:
             logger.error('Error sincronizando tipo de cambio de %s: %s', pais.codigo_iso, exc)

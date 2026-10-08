@@ -1,5 +1,6 @@
 import statistics
 
+from apps.alertas.services import evaluar_alerta_inflacion, evaluar_alertas_riesgo
 from apps.paises.models import IndicadorEconomico, Pais
 
 from .models import IndiceRiesgo
@@ -217,7 +218,9 @@ def calcular_irpc_pais(pais):
         'crecimiento_pib': crecimiento,
     }
 
-    return IndiceRiesgo.objects.create(
+    indice_anterior = IndiceRiesgo.objects.filter(pais=pais).order_by('-fecha_calculo').first()
+
+    indice_actual = IndiceRiesgo.objects.create(
         pais=pais,
         score_economico=economico,
         score_cambiario=cambiario,
@@ -226,6 +229,11 @@ def calcular_irpc_pais(pais):
         nivel_riesgo=nivel_riesgo,
         detalle_calculo=detalle_calculo,
     )
+
+    evaluar_alertas_riesgo(indice_actual, indice_anterior)
+    evaluar_alerta_inflacion(pais, inflacion)
+
+    return indice_actual
 
 
 def calcular_irpc_todos():
