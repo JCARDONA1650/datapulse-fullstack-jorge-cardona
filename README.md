@@ -132,6 +132,6 @@ El requerimiento (`HU_GLOBAL.md`, sección 13) señala 9 puntos no definidos exp
 8. **`Usuario.activo` vs `is_active`**: se reutiliza `is_active` de `AbstractUser`; no se duplica el campo. El serializer expone `activo` como alias de `is_active`.
 9. **Concurrencia en portafolios**: optimistic locking simple. El cliente envía `fecha_modificacion` tal como la recibió; si no coincide con la del servidor al guardar, se responde `409 Conflict` con un mensaje claro.
 
-## Inconsistencia detectada en el caso de prueba del IRPC
+## Inconsistencias y deuda técnica
 
-La tabla de brackets del Score Economico define Inflacion como `>10 -> -25`, `>5 -> -10`. El caso de prueba obligatorio de Colombia usa Inflacion = 9.2 (que cae en el bracket `>5`, penalizacion -10) pero el documento indica que la penalizacion debe ser -25 para que el Score Economico final de 45. Con la formula aplicada literalmente el resultado es Score Economico = 60 e IRPC = 75 (BAJO), no 69 (MODERADO) como indica el documento. Resolucion aplicada: _pendiente, se define al implementar el calculo del IRPC_.
+Hallazgos del propio desarrollo (no señalados como ambiguos por el documento original), la decisión tomada y la forma óptima de resolverlos: ver [`documentacion/INCONSISTENCIAS.md`](documentacion/INCONSISTENCIAS.md).
