@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from apps.alertas.models import Alerta
 from apps.paises.seed import crear_indicadores, crear_paises, crear_tipos_cambio
+from apps.portafolios.seed import crear_portafolios
 from apps.riesgo.models import IndiceRiesgo
 from apps.riesgo.services import calcular_irpc_todos
 from apps.usuarios.models import Usuario
@@ -33,6 +34,9 @@ class Command(BaseCommand):
         Alerta.objects.all().delete()
         calcular_irpc_todos()
         self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises')
+
+        crear_portafolios()
+        self.stdout.write('Portafolios de ejemplo creados')
 
     def crear_usuarios(self):
         for datos in USUARIOS_INICIALES:
