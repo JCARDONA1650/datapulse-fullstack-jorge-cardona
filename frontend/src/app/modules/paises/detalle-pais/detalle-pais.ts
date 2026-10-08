@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, computed, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -6,12 +6,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
-import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 import { IndicadorEconomico, PaisService, TipoIndicador } from '../../../core/services/pais.service';
+import { RiesgoService } from '../../../core/services/riesgo.service';
 
 const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
   PIB: 'PIB',
@@ -25,12 +28,14 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
 @Component({
   selector: 'app-detalle-pais',
   imports: [
+    DatePipe,
     DecimalPipe,
     ReactiveFormsModule,
     MatCardModule,
     MatSelectModule,
     MatFormFieldModule,
     MatProgressSpinnerModule,
+    MatTableModule,
     BaseChartDirective,
   ],
   templateUrl: './detalle-pais.html',
@@ -39,6 +44,9 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
 export class DetallePais {
   private readonly route = inject(ActivatedRoute);
   private readonly paisService = inject(PaisService);
+  private readonly riesgoService = inject(RiesgoService);
+
+  protected readonly columnasHistoricoRiesgo = ['fecha_calculo', 'indice_compuesto', 'nivel_riesgo'];
 
   protected readonly tiposIndicador = Object.keys(ETIQUETAS_TIPO) as TipoIndicador[];
   protected readonly etiquetasTipo = ETIQUETAS_TIPO;
@@ -59,6 +67,22 @@ export class DetallePais {
   protected readonly tipoCambio = toSignal(
     this.route.paramMap.pipe(
       switchMap((params) => this.paisService.tipoCambio(params.get('codigoIso')!, { page_size: 30 })),
+    ),
+    { initialValue: null },
+  );
+
+  protected readonly riesgo = toSignal(
+    this.route.paramMap.pipe(
+      switchMap((params) => this.riesgoService.obtener(params.get('codigoIso')!).pipe(catchError(() => of(null)))),
+    ),
+    { initialValue: null },
+  );
+
+  protected readonly historicoRiesgo = toSignal(
+    this.route.paramMap.pipe(
+      switchMap((params) =>
+        this.riesgoService.historico(params.get('codigoIso')!).pipe(catchError(() => of(null))),
+      ),
     ),
     { initialValue: null },
   );

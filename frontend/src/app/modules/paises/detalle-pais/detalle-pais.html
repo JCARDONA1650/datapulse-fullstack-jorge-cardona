@@ -38,5 +38,41 @@
       <mat-card-subtitle>Tipo de cambio - ultimos 30 dias</mat-card-subtitle>
       <canvas baseChart [data]="datosGraficoTipoCambio()" type="line"></canvas>
     </mat-card>
+
+    @if (riesgo(); as indice) {
+      <mat-card class="tarjeta-riesgo">
+        <mat-card-subtitle>Indice de Riesgo Pais Compuesto (IRPC)</mat-card-subtitle>
+        <div class="indice-compuesto" [style.color]="indice.color">
+          {{ indice.indice_compuesto }} - {{ indice.nivel_riesgo }}
+        </div>
+        <div class="desglose-scores">
+          <div><span>Economico</span><strong>{{ indice.score_economico }}</strong></div>
+          <div><span>Cambiario</span><strong>{{ indice.score_cambiario }}</strong></div>
+          <div><span>Estabilidad</span><strong>{{ indice.score_estabilidad }}</strong></div>
+        </div>
+      </mat-card>
+    }
+
+    @if (historicoRiesgo() && historicoRiesgo()!.results.length > 0) {
+      <mat-card class="tarjeta-grafico">
+        <mat-card-subtitle>Historico del IRPC</mat-card-subtitle>
+        <table mat-table [dataSource]="historicoRiesgo()!.results">
+          <ng-container matColumnDef="fecha_calculo">
+            <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <td mat-cell *matCellDef="let fila">{{ fila.fecha_calculo | date: 'short' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="indice_compuesto">
+            <th mat-header-cell *matHeaderCellDef>IRPC</th>
+            <td mat-cell *matCellDef="let fila">{{ fila.indice_compuesto }}</td>
+          </ng-container>
+          <ng-container matColumnDef="nivel_riesgo">
+            <th mat-header-cell *matHeaderCellDef>Nivel</th>
+            <td mat-cell *matCellDef="let fila" [style.color]="fila.color">{{ fila.nivel_riesgo }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columnasHistoricoRiesgo"></tr>
+          <tr mat-row *matRowDef="let fila; columns: columnasHistoricoRiesgo"></tr>
+        </table>
+      </mat-card>
+    }
   </div>
 }

@@ -29,3 +29,29 @@
     max-height: 300px;
   }
 }
+
+.tarjeta-riesgo {
+  padding: 16px;
+}
+
+.indice-compuesto {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 8px 0 16px;
+}
+
+.desglose-scores {
+  display: flex;
+  gap: 24px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    span {
+      font-size: 0.85rem;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+}
