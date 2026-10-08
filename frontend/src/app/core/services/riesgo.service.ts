@@ -17,6 +17,7 @@ export interface IndiceRiesgo {
   indice_compuesto: string;
   nivel_riesgo: NivelRiesgo;
   color: string;
+  variacion: number | null;
   detalle_calculo: Record<string, unknown>;
 }
 
