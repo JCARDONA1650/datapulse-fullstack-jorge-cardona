@@ -22,6 +22,8 @@ Prueba técnica Fullstack (Angular + Django) para Mission S.A.S.
 - **PostgreSQL en Docker para desarrollo local**: se reutiliza el mismo `docker-compose.yml` que suma puntos extra, evitando instalar PostgreSQL de forma nativa.
 - **ADMIN puede editar/eliminar cualquier portafolio**, no solo los propios (un ANALISTA solo gestiona los suyos). Es la única lectura que hace consistente el escenario de prueba obligatorio #5 ("dos usuarios editan el mismo portafolio público"): sin esta regla, un portafolio solo lo puede editar su dueño y la concurrencia entre dos usuarios distintos nunca podría darse. Confirmado con Mission S.A.S. como un alcance válido (ver `documentacion/INCONSISTENCIAS.md`, punto 3).
 - **Mapa de riesgo como scatter de coordenadas reales, no un mapa SVG/GeoJSON de Latinoamerica.** El stack permitido para gráficos es ngx-charts, Chart.js o Plotly — ninguno trae mapas de paises listos sin una librería adicional (Leaflet, d3-geo). Usar latitud/longitud reales de cada país como ejes X/Y de un scatter de Chart.js, coloreado por nivel de riesgo, da una lectura geográfica razonable sin sumar una dependencia nueva fuera de lo permitido.
+- **`gunicorn` + `whitenoise`** para servir el backend en Docker/producción (en vez de `runserver`, que no es apto para producción). Whitenoise evita depender de un servidor de archivos estáticos aparte solo para el admin de Django y los assets de Swagger UI.
+- **E2E con Playwright** en vez de Cypress o Protractor: Angular CLI ya no incluye Protractor por defecto, y Playwright no exige un runner de navegador adicional ni configuración extra para correr en modo headless.
 - Resolución de los puntos ambiguos de los requerimientos: ver sección [Puntos ambiguos resueltos](#puntos-ambiguos-resueltos).
 
 ## Arquitectura
@@ -78,6 +80,16 @@ npm start
 
 Aplicación disponible en `http://localhost:4200/`.
 
+### 5. (Alternativa) Todo con Docker
+
+```
+cp .env.example .env
+docker compose up -d --build
+docker compose exec backend python manage.py seed_data
+```
+
+Backend en `http://localhost:8000/`, frontend en `http://localhost:4200/`. El `Dockerfile` del backend corre `collectstatic` y sirve con `gunicorn`; el del frontend es multi-stage (build con Node, se sirve con `nginx`, con fallback de rutas para la SPA). El build del frontend recibe la URL del backend por `ARG API_URL` (en `docker-compose.yml` apunta a `http://localhost:8000/api` para uso local; en producción el Dockerfile usa por defecto la URL de Render).
+
 ## Cómo ejecutar los tests
 
 ```
@@ -85,12 +97,15 @@ cd backend
 python manage.py test        # 76 tests (auth + paises + riesgo + alertas + portafolios + dashboard)
 
 cd frontend
-npm test -- --watch=false --browsers=ChromeHeadless
+npm test -- --watch=false --browsers=ChromeHeadless   # 16 tests unitarios (servicios, guards, interceptor, componente)
+npm run e2e                                           # 3 tests E2E con Playwright (requiere backend y frontend corriendo)
 ```
 
 ## Endpoints
 
-Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o en la URL desplegada (ver [Despliegue](#despliegue)).
+Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o en la URL desplegada (ver [Despliegue](#despliegue)). También hay Redoc en `/api/redoc/`.
+
+**Postman:** importar `backend/openapi-schema.yml` (Postman → Import → File) o directamente la URL `http://localhost:8000/api/schema/`; Postman genera la colección completa con ejemplos a partir del schema OpenAPI.
 
 ## Tareas programadas
 
@@ -113,7 +128,7 @@ _Pendiente._
 
 ## Credenciales de prueba
 
-Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores y 30 dias de tipo de cambio; portafolios se agregan en una fase posterior del seed):
+Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores, 30 dias de tipo de cambio, el IRPC calculado y 2 portafolios de ejemplo con posiciones):
 
 | Email | Password | Rol |
 |---|---|---|
