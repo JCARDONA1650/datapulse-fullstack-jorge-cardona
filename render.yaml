@@ -1,0 +1,51 @@
+databases:
+  - name: datapulse-db
+    plan: free
+    databaseName: datapulse
+    user: datapulse
+
+services:
+  - type: web
+    name: datapulse-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    dockerCommand: "sh -c 'python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT'"
+    envVars:
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: datapulse-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: datapulse-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: datapulse-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: datapulse-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: datapulse-db
+          property: port
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: datapulse-backend.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://datapulse-frontend.vercel.app
+      - key: JWT_ACCESS_LIFETIME_MIN
+        value: "60"
+      - key: JWT_REFRESH_LIFETIME_DAYS
+        value: "7"
+      - key: WORLDBANK_API_BASE_URL
+        value: https://api.worldbank.org/v2
+      - key: EXCHANGERATE_API_BASE_URL
+        value: https://api.exchangerate-api.com/v4

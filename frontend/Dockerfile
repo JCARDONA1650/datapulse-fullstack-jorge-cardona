@@ -7,8 +7,8 @@ RUN npm ci
 
 COPY . .
 
-ARG API_URL=https://datapulse-api.onrender.com/api
-RUN sed -i "s#https://datapulse-api.onrender.com/api#${API_URL}#" src/environments/environment.ts
+ARG API_URL=https://datapulse-backend.onrender.com/api
+RUN sed -i "s#https://datapulse-backend.onrender.com/api#${API_URL}#" src/environments/environment.ts
 
 RUN npm run build
 
