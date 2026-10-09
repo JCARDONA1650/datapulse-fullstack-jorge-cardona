@@ -122,9 +122,27 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 - **Backend**: `apps/core/exceptions.py` define un manejador de excepciones de DRF que estandariza toda respuesta de error como `{"error": true, "status_code": ..., "mensaje": ...}`. Un middleware propio (`apps/core/middleware.py`) registra en el logger `apps.requests` el método, path, usuario y duración de cada request. Las acciones de login quedan en el modelo `LogActividad`.
 - **Frontend**: `core/interceptors/error.interceptor.ts` muestra un snackbar ante errores de red, 403, 404 y 5xx, y redirige a `/login` con un mensaje claro cuando el token expira (401). Los errores 400 (validaciones de formulario) se dejan pasar para que cada componente los asocie al campo correspondiente.
 
+## CI/CD
+
+`.github/workflows/ci.yml` corre en cada push/PR a `develop` y `main`: tests del backend (contra Postgres real, servicio de GitHub Actions) y tests + build del frontend. El **deploy** no se dispara desde Actions: Render y Vercel despliegan automáticamente al detectar un push en la rama conectada (su integración nativa con GitHub), que es el patrón estándar para estas plataformas y evita depender de tokens/deploy-hooks adicionales en el pipeline.
+
 ## Despliegue
 
-_Pendiente._
+**Backend (Render)**
+1. Crear cuenta en [render.com](https://render.com) con GitHub.
+2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
+3. Verificar en el servicio `datapulse-backend` → Environment que las variables quedaron bien (las que dependen de la base de datos se linkean solas; `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` traen un valor por defecto que hay que confirmar o ajustar una vez se conozca la URL real de cada servicio).
+4. Una vez desplegado, correr el seed desde el Shell de Render: `python manage.py seed_data`.
+
+**Frontend (Vercel)**
+1. Crear cuenta en [vercel.com](https://vercel.com) con GitHub.
+2. Add New → Project → importar el mismo repo, root directory `frontend`. Vercel lee `frontend/vercel.json` para el build command y el output directory.
+3. Confirmar que el dominio asignado sea `datapulse-frontend.vercel.app` (o actualizar `CORS_ALLOWED_ORIGINS` en Render con el dominio real que Vercel asigne).
+
+**Nota de transparencia:** no tengo acceso a las cuentas de Render/Vercel ni a sus CLIs desde este entorno, así que `render.yaml` y `vercel.json` están escritos según la documentación de cada plataforma pero no pude probarlos contra un despliegue real. Si Render o Vercel muestran un error de validación en el blueprint, revisar los nombres de campo contra su documentación vigente.
+
+- URL del backend: _pendiente de desplegar_
+- URL del frontend: _pendiente de desplegar_
 
 ## Credenciales de prueba
 
