@@ -1,5 +1,7 @@
 from django.db.models import Avg, Q
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -8,11 +10,14 @@ from apps.paises.models import IndicadorEconomico, Pais
 from apps.portafolios.models import Portafolio
 from apps.riesgo.services import COLOR_POR_NIVEL, ultimos_indices_queryset
 
+from .serializers import PuntoMapaSerializer, ResumenDashboardSerializer
+
 ANIOS_TENDENCIA = 5
 MAXIMO_PAISES_COMPARACION = 3
 
 
 class DashboardResumenView(APIView):
+    @extend_schema(responses=ResumenDashboardSerializer)
     def get(self, request):
         total_paises = Pais.objects.filter(activo=True).count()
 
@@ -33,6 +38,7 @@ class DashboardResumenView(APIView):
 
 
 class DashboardMapaView(APIView):
+    @extend_schema(responses=PuntoMapaSerializer(many=True))
     def get(self, request):
         datos = [
             {
@@ -50,6 +56,14 @@ class DashboardMapaView(APIView):
 
 
 class DashboardTendenciasView(APIView):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter('tipo', OpenApiTypes.STR, description='Tipo de indicador (ej: PIB_PERCAPITA)'),
+            OpenApiParameter('paises', OpenApiTypes.STR, description='Codigos ISO separados por coma, maximo 3'),
+        ],
+        responses={200: OpenApiTypes.OBJECT},
+        description='Retorna un objeto {codigo_iso: [{anio, valor}, ...]} por cada pais solicitado.',
+    )
     def get(self, request):
         tipo = request.query_params.get('tipo', IndicadorEconomico.Tipo.PIB_PERCAPITA)
         codigos = request.query_params.get('paises', '')

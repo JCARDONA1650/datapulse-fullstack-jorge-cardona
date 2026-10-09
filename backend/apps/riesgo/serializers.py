@@ -17,10 +17,10 @@ class IndiceRiesgoSerializer(serializers.ModelSerializer):
             'score_estabilidad', 'indice_compuesto', 'nivel_riesgo', 'color', 'variacion', 'detalle_calculo',
         ]
 
-    def get_color(self, obj):
+    def get_color(self, obj) -> str:
         return COLOR_POR_NIVEL.get(obj.nivel_riesgo)
 
-    def get_variacion(self, obj):
+    def get_variacion(self, obj) -> float | None:
         anterior = (
             IndiceRiesgo.objects.filter(pais=obj.pais, fecha_calculo__lt=obj.fecha_calculo)
             .order_by('-fecha_calculo').first()

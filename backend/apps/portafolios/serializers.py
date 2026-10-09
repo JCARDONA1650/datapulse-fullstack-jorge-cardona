@@ -49,7 +49,7 @@ class PortafolioSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'usuario', 'fecha_creacion', 'fecha_modificacion', 'activo']
 
-    def get_es_propio(self, obj):
+    def get_es_propio(self, obj) -> bool:
         request = self.context.get('request')
         return bool(request and request.user.is_authenticated and obj.usuario_id == request.user.id)
 

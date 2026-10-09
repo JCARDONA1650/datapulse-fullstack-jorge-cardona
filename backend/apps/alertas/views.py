@@ -9,6 +9,7 @@ from .serializers import AlertaSerializer
 
 class AlertaViewSet(ReadOnlyModelViewSet):
     serializer_class = AlertaSerializer
+    queryset = Alerta.objects.none()
     filterset_fields = ['tipo_alerta', 'severidad', 'leida']
 
     def get_queryset(self):

@@ -1,3 +1,5 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -7,6 +9,8 @@ from apps.core.permissions import EsAdmin
 from .models import IndiceRiesgo
 from .serializers import IndiceRiesgoSerializer
 from .services import calcular_irpc_todos, ultimos_indices_queryset
+
+CODIGO_ISO_PARAM = OpenApiParameter('codigo_iso', OpenApiTypes.STR, OpenApiParameter.PATH, description='Codigo ISO del pais (ej: CO)')
 
 
 class RiesgoViewSet(GenericViewSet):
@@ -22,6 +26,7 @@ class RiesgoViewSet(GenericViewSet):
         serializer = self.get_serializer(pagina, many=True)
         return self.get_paginated_response(serializer.data)
 
+    @extend_schema(parameters=[CODIGO_ISO_PARAM])
     def retrieve(self, request, codigo_iso=None):
         indice = (
             IndiceRiesgo.objects.filter(pais_id=codigo_iso)
@@ -37,6 +42,7 @@ class RiesgoViewSet(GenericViewSet):
         serializer = self.get_serializer(indice)
         return Response(serializer.data)
 
+    @extend_schema(parameters=[CODIGO_ISO_PARAM])
     @action(detail=True, methods=['get'])
     def historico(self, request, codigo_iso=None):
         queryset = (

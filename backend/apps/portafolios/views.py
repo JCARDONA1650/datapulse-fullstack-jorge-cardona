@@ -20,6 +20,7 @@ from .services import calcular_resumen_portafolio
 
 
 class PortafolioViewSet(viewsets.ModelViewSet):
+    queryset = Portafolio.objects.none()
     search_fields = ['nombre']
     ordering_fields = ['nombre', 'fecha_creacion', 'fecha_modificacion']
 
