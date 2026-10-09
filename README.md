@@ -130,9 +130,11 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 
 **Backend (Render)**
 1. Crear cuenta en [render.com](https://render.com) con GitHub.
-2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
+2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`, rama `develop`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
 3. Verificar en el servicio `datapulse-backend` → Environment que las variables quedaron bien (las que dependen de la base de datos se linkean solas; `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` traen un valor por defecto que hay que confirmar o ajustar una vez se conozca la URL real de cada servicio).
-4. Una vez desplegado, correr el seed desde el Shell de Render: `python manage.py seed_data`.
+4. No hace falta correr el seed a mano: el plan free de Render no tiene Shell, así que el comando de arranque del contenedor ya hace `migrate && seed_data && gunicorn` en cada deploy. `seed_data` es idempotente (usa `get_or_create`/`update_or_create`), así que correrlo en cada arranque no duplica datos ni falla.
+
+**Nota sobre el plan free:** el servicio se "duerme" tras un rato sin tráfico; la primera petición después de eso puede tardar **~1 minuto** en responder mientras el contenedor arranca de nuevo. Las siguientes son normales. Tenerlo en cuenta al grabar el video demostrativo (hacer un primer request de "calentamiento" antes de grabar).
 
 **Frontend (Vercel)**
 1. Crear cuenta en [vercel.com](https://vercel.com) con GitHub.
