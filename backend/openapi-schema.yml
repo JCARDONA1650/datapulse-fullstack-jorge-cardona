@@ -1,0 +1,1485 @@
+openapi: 3.0.3
+info:
+  title: DataPulse Latam API
+  version: 1.0.0
+  description: API de indicadores economicos, riesgo pais y portafolios para Latinoamerica
+paths:
+  /api/alertas/:
+    get:
+      operationId: alertas_list
+      parameters:
+      - in: query
+        name: leida
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      - in: query
+        name: severidad
+        schema:
+          type: string
+          enum:
+          - CRITICAL
+          - INFO
+          - WARNING
+        description: |-
+          * `INFO` - Info
+          * `WARNING` - Warning
+          * `CRITICAL` - Critical
+      - in: query
+        name: tipo_alerta
+        schema:
+          type: string
+          enum:
+          - INDICADOR
+          - RIESGO
+          - TIPO_CAMBIO
+        description: |-
+          * `RIESGO` - Riesgo
+          * `TIPO_CAMBIO` - Tipo de cambio
+          * `INDICADOR` - Indicador
+      tags:
+      - alertas
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAlertaList'
+          description: ''
+  /api/alertas/{id}/:
+    get:
+      operationId: alertas_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este alerta.
+        required: true
+      tags:
+      - alertas
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+          description: ''
+  /api/alertas/{id}/leer/:
+    put:
+      operationId: alertas_leer_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este alerta.
+        required: true
+      tags:
+      - alertas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+          description: ''
+  /api/alertas/leer-todas/:
+    put:
+      operationId: alertas_leer_todas_update
+      tags:
+      - alertas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Alerta'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+          description: ''
+  /api/alertas/resumen/:
+    get:
+      operationId: alertas_resumen_retrieve
+      tags:
+      - alertas
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alerta'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+          description: ''
+    put:
+      operationId: auth_me_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Perfil'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Perfil'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Perfil'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+          description: ''
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Registro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Registro'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registro'
+          description: ''
+  /api/dashboard/mapa/:
+    get:
+      operationId: dashboard_mapa_list
+      tags:
+      - dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PuntoMapa'
+          description: ''
+  /api/dashboard/resumen/:
+    get:
+      operationId: dashboard_resumen_retrieve
+      tags:
+      - dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumenDashboard'
+          description: ''
+  /api/dashboard/tendencias/:
+    get:
+      operationId: dashboard_tendencias_retrieve
+      description: 'Retorna un objeto {codigo_iso: [{anio, valor}, ...]} por cada
+        pais solicitado.'
+      parameters:
+      - in: query
+        name: paises
+        schema:
+          type: string
+        description: Codigos ISO separados por coma, maximo 3
+      - in: query
+        name: tipo
+        schema:
+          type: string
+        description: 'Tipo de indicador (ej: PIB_PERCAPITA)'
+      tags:
+      - dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/paises/:
+    get:
+      operationId: paises_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: region
+        schema:
+          type: string
+          enum:
+          - ANDINA
+          - CARIBE
+          - CENTROAMERICA
+          - CONO_SUR
+        description: |-
+          * `ANDINA` - Andina
+          * `CONO_SUR` - Cono Sur
+          * `CENTROAMERICA` - Centroamerica
+          * `CARIBE` - Caribe
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      tags:
+      - paises
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaisList'
+          description: ''
+  /api/paises/{codigo_iso}/:
+    get:
+      operationId: paises_retrieve
+      parameters:
+      - in: path
+        name: codigo_iso
+        schema:
+          type: string
+        description: Un valor único que identifique este pais.
+        required: true
+      tags:
+      - paises
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pais'
+          description: ''
+  /api/paises/{codigo_iso}/indicadores/:
+    get:
+      operationId: paises_indicadores_retrieve
+      parameters:
+      - in: path
+        name: codigo_iso
+        schema:
+          type: string
+        description: Un valor único que identifique este pais.
+        required: true
+      tags:
+      - paises
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pais'
+          description: ''
+  /api/paises/{codigo_iso}/tipo-cambio/:
+    get:
+      operationId: paises_tipo_cambio_retrieve
+      parameters:
+      - in: path
+        name: codigo_iso
+        schema:
+          type: string
+        description: Un valor único que identifique este pais.
+        required: true
+      tags:
+      - paises
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pais'
+          description: ''
+  /api/paises/sync-indicadores/:
+    post:
+      operationId: paises_sync_indicadores_create
+      tags:
+      - paises
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pais'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Pais'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Pais'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pais'
+          description: ''
+  /api/portafolios/:
+    get:
+      operationId: portafolios_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPortafolioList'
+          description: ''
+    post:
+      operationId: portafolios_create
+      tags:
+      - portafolios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+  /api/portafolios/{id}/:
+    get:
+      operationId: portafolios_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortafolioDetalle'
+          description: ''
+    put:
+      operationId: portafolios_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+    patch:
+      operationId: portafolios_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPortafolio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPortafolio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPortafolio'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+    delete:
+      operationId: portafolios_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/portafolios/{id}/export/pdf/:
+    get:
+      operationId: portafolios_export_pdf_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+  /api/portafolios/{id}/posiciones/:
+    post:
+      operationId: portafolios_posiciones_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+  /api/portafolios/{id}/posiciones/{posicion_id}/:
+    put:
+      operationId: portafolios_posiciones_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      - in: path
+        name: posicion_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - portafolios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Portafolio'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+    delete:
+      operationId: portafolios_posiciones_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      - in: path
+        name: posicion_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/portafolios/{id}/resumen/:
+    get:
+      operationId: portafolios_resumen_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este portafolio.
+        required: true
+      tags:
+      - portafolios
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Portafolio'
+          description: ''
+  /api/riesgo/:
+    get:
+      operationId: riesgo_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Qué campo usar para ordenar los resultados.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un término de búsqueda.
+        schema:
+          type: string
+      tags:
+      - riesgo
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIndiceRiesgoList'
+          description: ''
+  /api/riesgo/{codigo_iso}/:
+    get:
+      operationId: riesgo_retrieve
+      parameters:
+      - in: path
+        name: codigo_iso
+        schema:
+          type: string
+        description: 'Codigo ISO del pais (ej: CO)'
+        required: true
+      tags:
+      - riesgo
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndiceRiesgo'
+          description: ''
+  /api/riesgo/{codigo_iso}/historico/:
+    get:
+      operationId: riesgo_historico_retrieve
+      parameters:
+      - in: path
+        name: codigo_iso
+        schema:
+          type: string
+        description: 'Codigo ISO del pais (ej: CO)'
+        required: true
+      tags:
+      - riesgo
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndiceRiesgo'
+          description: ''
+  /api/riesgo/calcular/:
+    post:
+      operationId: riesgo_calcular_create
+      tags:
+      - riesgo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndiceRiesgo'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IndiceRiesgo'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IndiceRiesgo'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndiceRiesgo'
+          description: ''
+components:
+  schemas:
+    Alerta:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usuario:
+          type: integer
+          readOnly: true
+          nullable: true
+        pais:
+          type: string
+          readOnly: true
+        pais_nombre:
+          type: string
+          readOnly: true
+        tipo_alerta:
+          allOf:
+          - $ref: '#/components/schemas/TipoAlertaEnum'
+          readOnly: true
+        severidad:
+          allOf:
+          - $ref: '#/components/schemas/SeveridadEnum'
+          readOnly: true
+        titulo:
+          type: string
+          readOnly: true
+        mensaje:
+          type: string
+          readOnly: true
+        leida:
+          type: boolean
+          readOnly: true
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - fecha_creacion
+      - id
+      - leida
+      - mensaje
+      - pais
+      - pais_nombre
+      - severidad
+      - tipo_alerta
+      - titulo
+      - usuario
+    IndiceRiesgo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        pais:
+          type: string
+          readOnly: true
+        pais_nombre:
+          type: string
+          readOnly: true
+        fecha_calculo:
+          type: string
+          format: date-time
+          readOnly: true
+        score_economico:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        score_cambiario:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        score_estabilidad:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        indice_compuesto:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        nivel_riesgo:
+          $ref: '#/components/schemas/NivelRiesgoEnum'
+        color:
+          type: string
+          readOnly: true
+        variacion:
+          type: number
+          format: double
+          nullable: true
+          readOnly: true
+        detalle_calculo: {}
+      required:
+      - color
+      - fecha_calculo
+      - id
+      - indice_compuesto
+      - nivel_riesgo
+      - pais
+      - pais_nombre
+      - score_cambiario
+      - score_economico
+      - score_estabilidad
+      - variacion
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    NivelRiesgoEnum:
+      enum:
+      - BAJO
+      - MODERADO
+      - ALTO
+      - CRITICO
+      type: string
+      description: |-
+        * `BAJO` - Bajo
+        * `MODERADO` - Moderado
+        * `ALTO` - Alto
+        * `CRITICO` - Critico
+    PaginatedAlertaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alerta'
+    PaginatedIndiceRiesgoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndiceRiesgo'
+    PaginatedPaisList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pais'
+    PaginatedPortafolioList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Portafolio'
+    Pais:
+      type: object
+      properties:
+        codigo_iso:
+          type: string
+          maxLength: 2
+        nombre:
+          type: string
+          maxLength: 100
+        moneda_codigo:
+          type: string
+          maxLength: 3
+        moneda_nombre:
+          type: string
+          maxLength: 100
+        region:
+          $ref: '#/components/schemas/RegionEnum'
+        latitud:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,4})?$
+        longitud:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,4})?$
+        poblacion:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        activo:
+          type: boolean
+      required:
+      - codigo_iso
+      - latitud
+      - longitud
+      - moneda_codigo
+      - moneda_nombre
+      - nombre
+      - poblacion
+      - region
+    PatchedPortafolio:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+          minLength: 3
+        descripcion:
+          type: string
+          maxLength: 500
+        usuario:
+          type: integer
+          readOnly: true
+        es_propio:
+          type: boolean
+          readOnly: true
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+        fecha_modificacion:
+          type: string
+          format: date-time
+          readOnly: true
+        activo:
+          type: boolean
+          readOnly: true
+          default: true
+        es_publico:
+          type: boolean
+    Perfil:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        nombre_completo:
+          type: string
+          maxLength: 150
+        rol:
+          allOf:
+          - $ref: '#/components/schemas/RolEnum'
+          readOnly: true
+        activo:
+          type: boolean
+          readOnly: true
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - activo
+      - email
+      - fecha_creacion
+      - id
+      - nombre_completo
+      - rol
+    Portafolio:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+          minLength: 3
+        descripcion:
+          type: string
+          maxLength: 500
+        usuario:
+          type: integer
+          readOnly: true
+        es_propio:
+          type: boolean
+          readOnly: true
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+        fecha_modificacion:
+          type: string
+          format: date-time
+          readOnly: true
+        activo:
+          type: boolean
+          readOnly: true
+          default: true
+        es_publico:
+          type: boolean
+      required:
+      - activo
+      - es_propio
+      - fecha_creacion
+      - fecha_modificacion
+      - id
+      - nombre
+      - usuario
+    PortafolioDetalle:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+          minLength: 3
+        descripcion:
+          type: string
+          maxLength: 500
+        usuario:
+          type: integer
+          readOnly: true
+        es_propio:
+          type: boolean
+          readOnly: true
+        fecha_creacion:
+          type: string
+          format: date-time
+          readOnly: true
+        fecha_modificacion:
+          type: string
+          format: date-time
+          readOnly: true
+        activo:
+          type: boolean
+          readOnly: true
+          default: true
+        es_publico:
+          type: boolean
+        posiciones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Posicion'
+          readOnly: true
+      required:
+      - activo
+      - es_propio
+      - fecha_creacion
+      - fecha_modificacion
+      - id
+      - nombre
+      - posiciones
+      - usuario
+    Posicion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        portafolio:
+          type: integer
+          readOnly: true
+        pais:
+          type: string
+        pais_nombre:
+          type: string
+          readOnly: true
+        tipo_activo:
+          $ref: '#/components/schemas/TipoActivoEnum'
+        monto_inversion_usd:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        fecha_entrada:
+          type: string
+          format: date
+        fecha_salida:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        notas:
+          type: string
+          maxLength: 200
+      required:
+      - fecha_entrada
+      - fecha_salida
+      - id
+      - monto_inversion_usd
+      - pais
+      - pais_nombre
+      - portafolio
+      - tipo_activo
+    PuntoMapa:
+      type: object
+      properties:
+        codigo_iso:
+          type: string
+        nombre:
+          type: string
+        latitud:
+          type: number
+          format: double
+        longitud:
+          type: number
+          format: double
+        indice_compuesto:
+          type: number
+          format: double
+        nivel_riesgo:
+          type: string
+        color:
+          type: string
+      required:
+      - codigo_iso
+      - color
+      - indice_compuesto
+      - latitud
+      - longitud
+      - nivel_riesgo
+      - nombre
+    RegionEnum:
+      enum:
+      - ANDINA
+      - CONO_SUR
+      - CENTROAMERICA
+      - CARIBE
+      type: string
+      description: |-
+        * `ANDINA` - Andina
+        * `CONO_SUR` - Cono Sur
+        * `CENTROAMERICA` - Centroamerica
+        * `CARIBE` - Caribe
+    Registro:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        nombre_completo:
+          type: string
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - nombre_completo
+      - password
+      - password2
+    ResumenDashboard:
+      type: object
+      properties:
+        total_paises_monitoreados:
+          type: integer
+        alertas_activas:
+          type: integer
+        portafolios_usuario:
+          type: integer
+        promedio_irpc_region:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - alertas_activas
+      - portafolios_usuario
+      - promedio_irpc_region
+      - total_paises_monitoreados
+    RolEnum:
+      enum:
+      - ADMIN
+      - ANALISTA
+      - VIEWER
+      type: string
+      description: |-
+        * `ADMIN` - Administrador
+        * `ANALISTA` - Analista
+        * `VIEWER` - Viewer
+    SeveridadEnum:
+      enum:
+      - INFO
+      - WARNING
+      - CRITICAL
+      type: string
+      description: |-
+        * `INFO` - Info
+        * `WARNING` - Warning
+        * `CRITICAL` - Critical
+    TipoActivoEnum:
+      enum:
+      - RENTA_FIJA
+      - RENTA_VARIABLE
+      - COMMODITIES
+      - MONEDA
+      type: string
+      description: |-
+        * `RENTA_FIJA` - Renta fija
+        * `RENTA_VARIABLE` - Renta variable
+        * `COMMODITIES` - Commodities
+        * `MONEDA` - Moneda
+    TipoAlertaEnum:
+      enum:
+      - RIESGO
+      - TIPO_CAMBIO
+      - INDICADOR
+      type: string
+      description: |-
+        * `RIESGO` - Riesgo
+        * `TIPO_CAMBIO` - Tipo de cambio
+        * `INDICADOR` - Indicador
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
