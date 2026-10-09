@@ -56,6 +56,7 @@
     @if (historicoRiesgo() && historicoRiesgo()!.results.length > 0) {
       <mat-card class="tarjeta-grafico">
         <mat-card-subtitle>Historico del IRPC</mat-card-subtitle>
+        <div class="tabla-scroll">
         <table mat-table [dataSource]="historicoRiesgo()!.results">
           <ng-container matColumnDef="fecha_calculo">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
@@ -72,6 +73,7 @@
           <tr mat-header-row *matHeaderRowDef="columnasHistoricoRiesgo"></tr>
           <tr mat-row *matRowDef="let fila; columns: columnasHistoricoRiesgo"></tr>
         </table>
+        </div>
       </mat-card>
     }
   </div>

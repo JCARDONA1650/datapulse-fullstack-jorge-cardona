@@ -1,3 +1,4 @@
+<div class="tabla-scroll">
 <table mat-table [dataSource]="ranking()" class="tabla-ranking">
   <ng-container matColumnDef="pais_nombre">
     <th mat-header-cell *matHeaderCellDef>Pais</th>
@@ -31,3 +32,4 @@
   <tr mat-header-row *matHeaderRowDef="columnas"></tr>
   <tr mat-row *matRowDef="let row; columns: columnas"></tr>
 </table>
+</div>

@@ -44,6 +44,7 @@
       }
     </div>
 
+    <div class="tabla-scroll">
     <table mat-table [dataSource]="portafolio()!.posiciones" class="tabla-posiciones">
       <ng-container matColumnDef="pais_nombre">
         <th mat-header-cell *matHeaderCellDef>Pais</th>
@@ -87,5 +88,6 @@
       <tr mat-header-row *matHeaderRowDef="columnasPosiciones"></tr>
       <tr mat-row *matRowDef="let row; columns: columnasPosiciones"></tr>
     </table>
+    </div>
   </div>
 }

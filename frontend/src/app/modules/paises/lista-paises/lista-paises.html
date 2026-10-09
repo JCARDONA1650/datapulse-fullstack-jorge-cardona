@@ -23,6 +23,7 @@
   } @else if (respuesta()!.results.length === 0) {
     <p class="estado-vacio">No se encontraron paises con esos filtros.</p>
   } @else {
+    <div class="tabla-scroll">
     <table mat-table [dataSource]="respuesta()!.results" class="tabla-paises">
       <ng-container matColumnDef="codigo_iso">
         <th mat-header-cell *matHeaderCellDef>Codigo</th>
@@ -52,5 +53,6 @@
       <tr mat-header-row *matHeaderRowDef="columnas"></tr>
       <tr mat-row *matRowDef="let pais; columns: columnas" (click)="irADetalle(pais.codigo_iso)" class="fila-pais"></tr>
     </table>
+    </div>
   }
 </div>

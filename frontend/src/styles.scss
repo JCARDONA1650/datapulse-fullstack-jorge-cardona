@@ -37,3 +37,13 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+// Evita que las tablas rompan el layout en tablet (768px): el contenido scrollea
+// horizontalmente dentro de su propio contenedor en vez de desbordar la pagina.
+.tabla-scroll {
+  overflow-x: auto;
+
+  table {
+    min-width: 600px;
+  }
+}

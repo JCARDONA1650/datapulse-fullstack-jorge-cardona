@@ -11,3 +11,12 @@
   margin-right: 8px;
   font-size: 0.9rem;
 }
+
+// En tablet (768px) se oculta el nombre del usuario para que los enlaces y el
+// badge de alertas sigan cabiendo sin desbordar el navbar.
+@media (max-width: 768px) {
+  .usuario {
+    display: none;
+  }
+}
+
