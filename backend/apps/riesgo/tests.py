@@ -21,11 +21,12 @@ from .services import (
 
 class CasoObligatorioColombiaTests(TestCase):
     """
-    Reproduce el caso de prueba de HU_GLOBAL.md (Epica 4) con las entradas
-    literales. Con la formula tal como esta escrita (ver documentacion/INCONSISTENCIAS.md,
-    punto 1), el resultado real difiere del que indica el documento: Score Economico=60
-    (no 45) porque Inflacion=9.2 cae en el bracket >5 (-10), no en >10 (-25). El resto de
-    los valores si coincide con el documento.
+    Reproduce el caso de prueba de HU_GLOBAL.md (Epica 4) con las entradas literales.
+    Con la formula tal como esta escrita, Inflacion=9.2 cae en el bracket >5 (-10), no en
+    >10 (-25), lo que da Score Economico=60 (no 45) y IRPC=75/BAJO (no 69/MODERADO) como
+    indica el ejemplo del documento. Mission S.A.S. confirmo (ver documentacion/INCONSISTENCIAS.md,
+    punto 1) que el ejemplo es solo ilustrativo y que la formula (el codigo) es la fuente de verdad,
+    asi que este resultado es el esperado.
     """
 
     def test_score_economico(self):

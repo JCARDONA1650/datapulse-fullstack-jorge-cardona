@@ -6,7 +6,9 @@ Registro de contradicciones o ambigüedades reales encontradas en `HU_GLOBAL.md`
 
 ## 1. Bracket de inflación vs. caso de prueba obligatorio del IRPC (Fase 2/3)
 
-**Estado:** pendiente de respuesta del cliente — pregunta enviada a luis.quinones@mission.com.co (una de las 2 permitidas). Esta misma inconsistencia ya está presente en el PDF original de la prueba (sección 1.4, "Ejemplo de Cálculo para Colombia"), no es algo introducido al redactar `HU_GLOBAL.md`.
+**Estado:** RESUELTO — respuesta de Luis Quiñones (Mission S.A.S.), 09-Oct-2026: "Las condiciones de cálculo varían de acuerdo con cada país, con base en la información que actualiza el API. El ejemplo que se da muestra un ejemplo de cómo hacer el cálculo, pero los datos pueden variar de acuerdo con la información actualizada. La idea es basarnos en el código de ejemplo, y validar que los valores estén calculados de acuerdo con la fórmula propuesta [...]. Si es necesario se puede modificar el código siempre y cuando se cumpla la formulación propuesta."
+
+Confirma la decisión ya tomada: el código (los brackets) es la fuente de verdad, el ejemplo de Colombia es solo ilustrativo y no necesita reproducirse exactamente. No se requiere ningún cambio de código.
 
 **Dónde:** `HU_GLOBAL.md`, Épica 4 — tabla de Score Económico y "Caso de prueba obligatorio (Colombia)".
 
@@ -42,7 +44,9 @@ Registro de contradicciones o ambigüedades reales encontradas en `HU_GLOBAL.md`
 
 ## 3. Quién puede editar un portafolio ajeno vs. escenario de concurrencia obligatorio (Fase 5)
 
-**Estado:** pendiente de respuesta del cliente — pregunta enviada a luis.quinones@mission.com.co (la segunda de las 2 permitidas).
+**Estado:** RESUELTO — respuesta de Luis Quiñones (Mission S.A.S.), 09-Oct-2026: "Actualmente hay total libertad de desarrollo. Idealmente solo el Dueño del portafolio puede editarlo. También es posible que, por diseño, se pueda habilitar al usuario ADMIN para hacer edición. (No hay restricción). [...] Si se desarrolla este alcance, se valora como puntaje adicional ya que no está especificado."
+
+Confirma que la implementación actual (ADMIN puede editar cualquier portafolio) es válida y la reconocen explícitamente como un plus, no como algo a corregir. No se requiere ningún cambio de código.
 
 **Dónde:** PDF original, entidad `Portafolio` + restricciones de integridad ("Un Viewer no puede crear ni editar portafolios") y sección "Escenarios de Prueba", punto 5 (Concurrencia). En `HU_GLOBAL.md`: modelo `Portafolio`, HU-09, y sección 9 (escenario obligatorio #5).
 
