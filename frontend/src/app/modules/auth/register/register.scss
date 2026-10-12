@@ -1,0 +1,18 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.campo-completo {
+  width: 100%;
+  margin-bottom: 8px;
+  display: block;
+}

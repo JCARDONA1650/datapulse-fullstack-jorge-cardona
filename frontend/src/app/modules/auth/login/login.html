@@ -1,0 +1,62 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>DataPulse Latam</mat-card-title>
+      <mat-card-subtitle>Inicia sesion con tu email</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="enviar()">
+        <mat-form-field appearance="outline" class="campo-completo">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <mat-error>
+              @if (form.controls.email.hasError('required')) {
+                El email es obligatorio.
+              } @else if (form.controls.email.hasError('email')) {
+                Ingresa un email valido.
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="campo-completo">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            [type]="ocultarPassword() ? 'password' : 'text'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="ocultarPassword.set(!ocultarPassword())"
+            [attr.aria-label]="ocultarPassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+          >
+            <mat-icon>{{ ocultarPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <mat-error>
+              @if (form.controls.password.hasError('required')) {
+                La contraseña es obligatoria.
+              } @else if (form.controls.password.hasError('minlength')) {
+                Debe tener al menos 8 caracteres.
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" class="campo-completo" type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Ingresando...' : 'Ingresar' }}
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <a routerLink="/register">¿No tienes cuenta? Registrate</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

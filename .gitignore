@@ -1,0 +1,32 @@
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+venv/
+.venv/
+staticfiles/
+media/
+
+# Entorno
+.env
+*.env
+!.env.example
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+playwright-report/
+test-results/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

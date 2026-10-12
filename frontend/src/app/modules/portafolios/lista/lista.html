@@ -1,0 +1,44 @@
+<div class="lista-portafolios-container">
+  <div class="encabezado">
+    <h1>Portafolios</h1>
+    @if (puedeGestionar()) {
+      <button mat-flat-button color="primary" (click)="irACrear()">Nuevo portafolio</button>
+    }
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Buscar</mat-label>
+    <input matInput [formControl]="busqueda" placeholder="Nombre del portafolio" />
+  </mat-form-field>
+
+  @if (respuesta() === null) {
+    <mat-spinner />
+  } @else if (respuesta()!.results.length === 0) {
+    <p class="estado-vacio">No hay portafolios para mostrar.</p>
+  } @else {
+    <div class="grid-portafolios">
+      @for (portafolio of respuesta()!.results; track portafolio.id) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ portafolio.nombre }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-chip-set>
+              <mat-chip [highlighted]="portafolio.es_propio">
+                {{ portafolio.es_propio ? 'Propio' : 'Publico' }}
+              </mat-chip>
+            </mat-chip-set>
+            <p>{{ portafolio.descripcion || 'Sin descripcion' }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="irADetalle(portafolio)">Ver detalle</button>
+            @if (portafolio.es_propio && puedeGestionar()) {
+              <button mat-button (click)="irAEditar(portafolio)">Editar</button>
+              <button mat-button color="warn" (click)="eliminar(portafolio)">Eliminar</button>
+            }
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

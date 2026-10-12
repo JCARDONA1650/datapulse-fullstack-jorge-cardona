@@ -1,0 +1,28 @@
+.lista-paises-container {
+  padding: 24px;
+}
+
+.filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.tabla-paises {
+  width: 100%;
+}
+
+.fila-pais {
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-highest);
+  }
+}
+
+.estado-vacio {
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 32px;
+}
