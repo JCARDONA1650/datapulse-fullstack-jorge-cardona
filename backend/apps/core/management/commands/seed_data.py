@@ -14,8 +14,14 @@ from apps.usuarios.models import Usuario
 # Dias hacia atras (desde hoy) de cada calculo historico del IRPC que se siembra por
 # pais, para que el ranking tenga Variacion/Tendencia y el detalle tenga historico.
 # El ajuste (puntos sobre el indice_compuesto real) hace que los calculos anteriores
-# no sean identicos al actual (0 = sin ajuste), simulando una leve mejora en el tiempo.
-DIAS_HISTORICO_IRPC = [(20, -3), (10, -1.5), (0, 0)]
+# no sean identicos al actual (0 = sin ajuste). Se ciclan 3 perfiles (mejora, empeora,
+# estable) entre los paises (en orden de codigo_iso, estable entre corridas) para que
+# el ranking muestre tendencias distintas en vez de la misma para los 10 paises.
+PERFILES_HISTORICO_IRPC = [
+    [(20, -3), (10, -1.5), (0, 0)],
+    [(20, 3), (10, 1.5), (0, 0)],
+    [(20, 0), (10, 0), (0, 0)],
+]
 
 USUARIOS_INICIALES = [
     {'email': 'admin@datapulse.com', 'nombre_completo': 'Administrador DataPulse', 'rol': Usuario.Rol.ADMIN, 'is_staff': True, 'is_superuser': True},
@@ -50,8 +56,10 @@ class Command(BaseCommand):
 
     def sembrar_historico_irpc(self):
         ahora = timezone.now()
-        for pais in Pais.objects.filter(activo=True):
-            for dias_atras, ajuste in DIAS_HISTORICO_IRPC:
+        paises = Pais.objects.filter(activo=True).order_by('codigo_iso')
+        for indice_pais, pais in enumerate(paises):
+            perfil = PERFILES_HISTORICO_IRPC[indice_pais % len(PERFILES_HISTORICO_IRPC)]
+            for dias_atras, ajuste in perfil:
                 indice = calcular_irpc_pais(pais)
                 cambios = {'fecha_calculo': ahora - timedelta(days=dias_atras)}
                 if ajuste:
