@@ -28,11 +28,49 @@ Prueba técnica Fullstack (Angular + Django) para Mission S.A.S.
 
 ## Arquitectura
 
-_Diagrama pendiente – se agrega al cerrar las fases de backend y frontend._
+```
+┌───────────────┐   HTTPS    ┌────────────────────────┐   HTTPS + JWT   ┌────────────────────────┐
+│   Navegador    │ ─────────> │   Frontend (Vercel)      │ ──────────────> │   Backend (Render)       │
+│   (usuario)    │ <───────── │   Angular 20 standalone  │ <────────────── │   Django + DRF            │
+└───────────────┘            │   servido por nginx      │                 │   gunicorn, en Docker     │
+                              │   (build estatico, SPA)  │                 └────────────┬────────────┘
+                              └────────────────────────┘                              │ SQL
+                                                                                        v
+                                                                            ┌────────────────────────┐
+                                                                            │   PostgreSQL (Render)    │
+                                                                            └────────────────────────┘
+
+Backend, bajo demanda (ADMIN) o programado via cron - management commands:
+┌─────────────────────┐        ┌──────────────────────────────┐
+│  sync_indicadores     │ ────> │  World Bank API                 │
+│  sync_tipos_cambio    │ ────> │  ExchangeRate-API                │
+│  calcular_riesgo      │       └──────────────────────────────┘
+└─────────────────────┘
+```
+
+Backend y frontend son dos despliegues independientes (imágenes Docker separadas, cada una con su propio repositorio de build) que solo se comunican por HTTP/JSON autenticado con JWT. CORS en el backend permite explícitamente el origen de Vercel.
 
 ## Diagrama entidad-relación
 
-_Pendiente – se agrega al cerrar la fase de modelo de datos._
+```
+Usuario              PK id           email*, nombre_completo, rol, fecha_creacion, is_active
+Pais                 PK codigo_iso   nombre, moneda_codigo*, moneda_nombre, region, latitud, longitud, poblacion, activo
+IndicadorEconomico   PK id           pais_id -> Pais, tipo, valor, unidad, anio, fuente, fecha_actualizacion
+TipoCambio           PK id           moneda_origen -> Pais.moneda_codigo, moneda_destino, tasa, fecha, variacion_porcentual, fuente
+Portafolio           PK id           usuario_id -> Usuario, nombre, descripcion, fecha_creacion, fecha_modificacion, activo, es_publico
+Posicion             PK id           portafolio_id -> Portafolio, pais_id -> Pais, tipo_activo, monto_inversion_usd, fecha_entrada, fecha_salida, notas
+IndiceRiesgo         PK id           pais_id -> Pais, fecha_calculo, score_economico, score_cambiario, score_estabilidad, indice_compuesto, nivel_riesgo, detalle_calculo
+Alerta               PK id           usuario_id -> Usuario (nullable), pais_id -> Pais, tipo_alerta, severidad, titulo, mensaje, leida, fecha_creacion
+LogActividad         PK id           usuario_id -> Usuario, accion, entidad_afectada, entidad_id, detalle, ip_address, fecha
+```
+
+**Relaciones (cardinalidad):**
+- `Usuario` 1─N `Portafolio`, `Alerta` (nullable, alerta global si `usuario` es NULL), `LogActividad`
+- `Pais` 1─N `IndicadorEconomico`, `IndiceRiesgo`, `Alerta`, `Posicion`
+- `Pais` 1─N `TipoCambio` (FK vía `moneda_codigo`, no `codigo_iso` — ver [Puntos ambiguos resueltos](#puntos-ambiguos-resueltos), punto 3)
+- `Portafolio` 1─N `Posicion`
+
+**Restricciones de integridad implementadas:** nombre único por usuario entre portafolios activos (constraint parcial), único `(pais, tipo, anio)` en `IndicadorEconomico`, único `(moneda_origen, fecha)` en `TipoCambio`, `fecha_salida > fecha_entrada` en `Posicion`, `indice_compuesto` entre 0 y 100 (validators).
 
 ## Instalación y ejecución local
 
@@ -100,6 +138,17 @@ cd frontend
 npm test -- --watch=false --browsers=ChromeHeadless   # 16 tests unitarios (servicios, guards, interceptor, componente)
 npm run e2e                                           # 3 tests E2E con Playwright (requiere backend y frontend corriendo)
 ```
+
+## Escenarios de prueba obligatorios
+
+| # | Escenario | Dónde se cubre |
+|---|---|---|
+| 1 | API externa no disponible: la sincronización continúa con lo que obtenga y registra los errores | `apps/paises/services.py` (try/except por país) + `SincronizarIndicadoresTests.test_continua_si_un_pais_falla` |
+| 2 | Token expirado: el frontend redirige a login con mensaje | `core/interceptors/error.interceptor.ts` (401 fuera de `/auth/login/` → logout + redirect + snackbar) |
+| 3 | Permisos insuficientes: VIEWER recibe 403 y no ve botones de crear/editar | `apps/core/permissions.py` (`NoEsViewer`) + `test_viewer_no_puede_crear`; frontend oculta botones con `puedeGestionar()` en `lista.ts`/`detalle.ts` |
+| 4 | Datos incompletos: el IRPC se calcula con lo disponible y marca los faltantes | `apps/riesgo/services.py` (`faltantes` en cada score) + `test_datos_incompletos_no_penaliza_y_registra_faltante` |
+| 5 | Concurrencia: dos usuarios editando el mismo portafolio público se informa con un mensaje apropiado | `PortafolioViewSet.update` (409 si `fecha_modificacion` no coincide) + `test_concurrencia_409` |
+| 6 | Validaciones de formulario: datos inválidos muestran errores específicos sin llamar al backend | `ReactiveFormsModule` + `Validators` en todos los formularios (`if (form.invalid) { markAllAsTouched(); return; }` antes de cualquier llamada al servicio) |
 
 ## Endpoints
 
