@@ -121,7 +121,7 @@ export class DetallePais {
     const resultados = [...(this.tipoCambio()?.results ?? [])].sort((a, b) => a.fecha.localeCompare(b.fecha));
 
     return {
-      labels: resultados.map((tipoCambio) => tipoCambio.fecha),
+      labels: resultados.map((tipoCambio) => this.formatearFechaCorta(tipoCambio.fecha)),
       datasets: [
         {
           label: `${this.pais()?.moneda_codigo ?? ''} / USD`,
@@ -131,6 +131,21 @@ export class DetallePais {
       ],
     };
   });
+
+  // Eje 'category' explicito (sin adaptador de fechas en el proyecto, Chart.js
+  // trataria un scale 'time' como no disponible) y con limite de ticks para que no
+  // se amontonen ni se recorte la fecha mas reciente al final del eje.
+  protected readonly opcionesGraficoTipoCambio: ChartConfiguration<'line'>['options'] = {
+    maintainAspectRatio: false,
+    scales: {
+      x: { type: 'category', ticks: { autoSkip: true, maxTicksLimit: 10, maxRotation: 0 } },
+    },
+  };
+
+  private formatearFechaCorta(fechaIso: string): string {
+    const [, mes, dia] = fechaIso.split('-');
+    return `${dia}/${mes}`;
+  }
 
   protected bandera(codigoIso: string): string {
     return `https://flagcdn.com/w80/${codigoIso.toLowerCase()}.png`;
