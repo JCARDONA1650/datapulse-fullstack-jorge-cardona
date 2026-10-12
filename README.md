@@ -145,7 +145,11 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 2. Add New → Project → importar el mismo repo, root directory `frontend`. Vercel lee `frontend/vercel.json` para el build command y el output directory.
 3. Confirmar el dominio asignado y, si difiere del esperado, actualizar `CORS_ALLOWED_ORIGINS` en Render.
 
-**Incidente real durante el despliegue:** el primer intento falló con `Exited with status 127` porque Render no interpreta correctamente las comillas de un `dockerCommand` con `&&` encadenados en `render.yaml` — tomó toda la línea como un solo comando inexistente. Se solucionó moviendo la lógica de arranque a `backend/entrypoint.sh` (ejecutado vía `CMD ["sh", "/app/entrypoint.sh"]` en el Dockerfile) en vez de pasar un comando inline por YAML.
+**Nota sobre la rama por defecto:** Vercel importa desde la rama por defecto del repo en GitHub, y `main` todavía no tiene la carpeta `frontend` (todo el desarrollo vive en `develop` hasta el cierre). Por eso la rama por defecto en GitHub se cambió temporalmente a `develop`, y en Vercel (Settings → Environments → Production) la rama de producción también apunta a `develop`. Al hacer el merge final a `main`, hay que revertir las tres cosas juntas: rama por defecto en GitHub, `branch` en `render.yaml`, y rama de producción en Vercel.
+
+**Incidentes reales durante el despliegue:**
+- El primer intento de Render falló con `Exited with status 127` porque Render no interpreta correctamente las comillas de un `dockerCommand` con `&&` encadenados en `render.yaml` — tomó toda la línea como un solo comando inexistente. Se solucionó moviendo la lógica de arranque a `backend/entrypoint.sh` (ejecutado vía `CMD ["sh", "/app/entrypoint.sh"]` en el Dockerfile) en vez de pasar un comando inline por YAML. El script usa `exec` para el paso final (`exec gunicorn ...`), para que gunicorn quede como PID 1 y reciba `SIGTERM` directo en los redeploys del plan free, en vez de quedar como proceso huérfano colgado de `sh`.
+- Render y Vercel asignaron dominios distintos a los esperados (`datapulse-backend-xo0v.onrender.com` y `datapulse-frontend-beta.vercel.app`), así que hubo que actualizar `DJANGO_ALLOWED_HOSTS`/`CORS_ALLOWED_ORIGINS` en `render.yaml` y la URL del API en `environment.ts` con los dominios reales.
 
 ## Credenciales de prueba
 
