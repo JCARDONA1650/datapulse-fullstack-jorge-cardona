@@ -88,7 +88,7 @@ docker compose up -d --build
 docker compose exec backend python manage.py seed_data
 ```
 
-Backend en `http://localhost:8000/`, frontend en `http://localhost:4200/`. El `Dockerfile` del backend corre `collectstatic` y sirve con `gunicorn`; el del frontend es multi-stage (build con Node, se sirve con `nginx`, con fallback de rutas para la SPA). El build del frontend recibe la URL del backend por `ARG API_URL` (en `docker-compose.yml` apunta a `http://localhost:8000/api` para uso local; en producción el Dockerfile usa por defecto la URL de Render).
+Backend en `http://localhost:8000/`, frontend en `http://localhost:4200/`. El `Dockerfile` del backend corre `collectstatic` en el build y al arrancar ejecuta `entrypoint.sh` (`migrate` → `seed_data` → `gunicorn`); el del frontend es multi-stage (build con Node, se sirve con `nginx`, con fallback de rutas para la SPA). El build del frontend recibe la URL del backend por `ARG API_URL` (en `docker-compose.yml` apunta a `http://localhost:8000/api` para uso local; en producción el Dockerfile usa por defecto la URL de Render).
 
 ## Cómo ejecutar los tests
 
@@ -128,27 +128,28 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 
 ## Despliegue
 
+**URLs desplegadas**
+- Backend: https://datapulse-backend-xo0v.onrender.com (Swagger en `/api/docs/`)
+- Frontend: https://datapulse-frontend-beta.vercel.app
+
 **Backend (Render)**
 1. Crear cuenta en [render.com](https://render.com) con GitHub.
 2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`, rama `develop`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
-3. Verificar en el servicio `datapulse-backend` → Environment que las variables quedaron bien (las que dependen de la base de datos se linkean solas; `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` traen un valor por defecto que hay que confirmar o ajustar una vez se conozca la URL real de cada servicio).
-4. No hace falta correr el seed a mano: el plan free de Render no tiene Shell, así que el comando de arranque del contenedor ya hace `migrate && seed_data && gunicorn` en cada deploy. `seed_data` es idempotente (usa `get_or_create`/`update_or_create`), así que correrlo en cada arranque no duplica datos ni falla.
+3. Verificar en el servicio `datapulse-backend` → Environment que `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` tengan el dominio real que Render/Vercel asignaron (puede variar del esperado; en este despliegue Render agregó un sufijo, `datapulse-backend-xo0v.onrender.com`).
+4. El contenedor arranca con `backend/entrypoint.sh`: `migrate` → `seed_data` → `gunicorn`. El plan free no tiene Shell, así que no hay forma de correr el seed a mano — por eso queda dentro del arranque. `seed_data` es idempotente (`get_or_create`/`update_or_create`), así que repetirlo en cada deploy no duplica datos ni falla.
 
 **Nota sobre el plan free:** el servicio se "duerme" tras un rato sin tráfico; la primera petición después de eso puede tardar **~1 minuto** en responder mientras el contenedor arranca de nuevo. Las siguientes son normales. Tenerlo en cuenta al grabar el video demostrativo (hacer un primer request de "calentamiento" antes de grabar).
 
 **Frontend (Vercel)**
 1. Crear cuenta en [vercel.com](https://vercel.com) con GitHub.
 2. Add New → Project → importar el mismo repo, root directory `frontend`. Vercel lee `frontend/vercel.json` para el build command y el output directory.
-3. Confirmar que el dominio asignado sea `datapulse-frontend.vercel.app` (o actualizar `CORS_ALLOWED_ORIGINS` en Render con el dominio real que Vercel asigne).
+3. Confirmar el dominio asignado y, si difiere del esperado, actualizar `CORS_ALLOWED_ORIGINS` en Render.
 
-**Nota de transparencia:** no tengo acceso a las cuentas de Render/Vercel ni a sus CLIs desde este entorno, así que `render.yaml` y `vercel.json` están escritos según la documentación de cada plataforma pero no pude probarlos contra un despliegue real. Si Render o Vercel muestran un error de validación en el blueprint, revisar los nombres de campo contra su documentación vigente.
-
-- URL del backend: _pendiente de desplegar_
-- URL del frontend: _pendiente de desplegar_
+**Incidente real durante el despliegue:** el primer intento falló con `Exited with status 127` porque Render no interpreta correctamente las comillas de un `dockerCommand` con `&&` encadenados en `render.yaml` — tomó toda la línea como un solo comando inexistente. Se solucionó moviendo la lógica de arranque a `backend/entrypoint.sh` (ejecutado vía `CMD ["sh", "/app/entrypoint.sh"]` en el Dockerfile) en vez de pasar un comando inline por YAML.
 
 ## Credenciales de prueba
 
-Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores, 30 dias de tipo de cambio, el IRPC calculado y 2 portafolios de ejemplo con posiciones):
+Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores, 30 dias de tipo de cambio, el IRPC calculado y 2 portafolios de ejemplo con posiciones). En el despliegue de Render el seed corre automáticamente en cada arranque, así que estas credenciales también funcionan en https://datapulse-frontend-beta.vercel.app:
 
 | Email | Password | Rol |
 |---|---|---|
