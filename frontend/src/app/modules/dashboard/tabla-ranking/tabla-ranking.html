@@ -12,7 +12,9 @@
 
   <ng-container matColumnDef="nivel_riesgo">
     <th mat-header-cell *matHeaderCellDef>Nivel</th>
-    <td mat-cell *matCellDef="let fila" [style.color]="fila.color">{{ fila.nivel_riesgo }}</td>
+    <td mat-cell *matCellDef="let fila">
+      <span class="chip-nivel" [style.background]="fila.color">{{ fila.nivel_riesgo }}</span>
+    </td>
   </ng-container>
 
   <ng-container matColumnDef="variacion">

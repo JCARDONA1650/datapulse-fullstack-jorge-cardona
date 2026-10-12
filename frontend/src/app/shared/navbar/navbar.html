@@ -1,5 +1,8 @@
 <mat-toolbar>
-  <span class="marca" routerLink="/dashboard">DataPulse Latam</span>
+  <span class="marca" routerLink="/dashboard">
+    <img src="favicon.png" alt="" class="logo" />
+    DataPulse Latam
+  </span>
   <span class="espacio"></span>
   @if (usuario$ | async; as usuario) {
     <app-alerta-badge />
