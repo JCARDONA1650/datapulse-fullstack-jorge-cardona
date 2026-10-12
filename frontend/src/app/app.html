@@ -1,5 +1,33 @@
 <app-loading-spinner />
 @if (usuario$ | async) {
-  <app-navbar />
+  <mat-sidenav-container class="shell">
+    <mat-sidenav class="sidenav" mode="side" opened>
+      <mat-nav-list>
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="activo">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+        <a mat-list-item routerLink="/paises" routerLinkActive="activo">
+          <mat-icon matListItemIcon>public</mat-icon>
+          <span matListItemTitle>Paises</span>
+        </a>
+        <a mat-list-item routerLink="/portafolios" routerLinkActive="activo">
+          <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
+          <span matListItemTitle>Portafolios</span>
+        </a>
+        <a mat-list-item routerLink="/alertas" routerLinkActive="activo">
+          <mat-icon matListItemIcon>notifications</mat-icon>
+          <span matListItemTitle>Alertas</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <app-navbar />
+      <main class="contenido">
+        <router-outlet />
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+} @else {
+  <router-outlet />
 }
-<router-outlet />

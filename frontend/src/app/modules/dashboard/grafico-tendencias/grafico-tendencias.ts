@@ -21,7 +21,7 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
 };
 
 const MAXIMO_PAISES = 3;
-const COLORES = ['#3b82f6', '#22c55e', '#f97316'];
+const COLORES = ['#1b75bb', '#29234f', '#06b6d4'];
 
 @Component({
   selector: 'app-grafico-tendencias',

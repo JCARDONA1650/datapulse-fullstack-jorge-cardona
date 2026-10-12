@@ -1,0 +1,36 @@
+.shell {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 220px;
+  background: var(--mat-sys-secondary);
+  border-right: none;
+
+  ::ng-deep .mat-mdc-list-item {
+    color: var(--mat-sys-on-secondary);
+  }
+
+  ::ng-deep mat-icon {
+    color: var(--mat-sys-on-secondary);
+  }
+
+  ::ng-deep a.activo {
+    background: rgba(27, 117, 187, 0.35);
+    border-left: 3px solid var(--mat-sys-primary);
+  }
+}
+
+.contenido {
+  min-height: calc(100vh - 64px);
+}
+
+@media (max-width: 768px) {
+  .sidenav {
+    width: 64px;
+  }
+
+  .sidenav ::ng-deep .mdc-list-item__primary-text {
+    display: none;
+  }
+}

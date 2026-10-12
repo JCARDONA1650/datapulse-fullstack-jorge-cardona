@@ -1,18 +1,22 @@
 <div class="kpi-grid">
-  <mat-card>
-    <mat-card-subtitle>Paises monitoreados</mat-card-subtitle>
-    <mat-card-title>{{ resumen()?.total_paises_monitoreados ?? '-' }}</mat-card-title>
+  <mat-card class="kpi-card">
+    <mat-icon class="kpi-icono">public</mat-icon>
+    <span class="kpi-valor">{{ resumen()?.total_paises_monitoreados ?? '-' }}</span>
+    <span class="kpi-etiqueta">Paises monitoreados</span>
   </mat-card>
-  <mat-card>
-    <mat-card-subtitle>Alertas activas</mat-card-subtitle>
-    <mat-card-title>{{ resumen()?.alertas_activas ?? '-' }}</mat-card-title>
+  <mat-card class="kpi-card">
+    <mat-icon class="kpi-icono">notifications</mat-icon>
+    <span class="kpi-valor">{{ resumen()?.alertas_activas ?? '-' }}</span>
+    <span class="kpi-etiqueta">Alertas activas</span>
   </mat-card>
-  <mat-card>
-    <mat-card-subtitle>Mis portafolios</mat-card-subtitle>
-    <mat-card-title>{{ resumen()?.portafolios_usuario ?? '-' }}</mat-card-title>
+  <mat-card class="kpi-card">
+    <mat-icon class="kpi-icono">account_balance_wallet</mat-icon>
+    <span class="kpi-valor">{{ resumen()?.portafolios_usuario ?? '-' }}</span>
+    <span class="kpi-etiqueta">Mis portafolios</span>
   </mat-card>
-  <mat-card>
-    <mat-card-subtitle>Promedio IRPC region</mat-card-subtitle>
-    <mat-card-title>{{ resumen()?.promedio_irpc_region ?? '-' }}</mat-card-title>
+  <mat-card class="kpi-card">
+    <mat-icon class="kpi-icono">show_chart</mat-icon>
+    <span class="kpi-valor">{{ resumen()?.promedio_irpc_region ?? '-' }}</span>
+    <span class="kpi-etiqueta">Promedio IRPC region</span>
   </mat-card>
 </div>

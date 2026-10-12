@@ -2,7 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { ChartConfiguration, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
-const PALETA = ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+const PALETA = ['#1b75bb', '#29234f', '#06b6d4', '#8b5cf6', '#22c55e', '#eab308', '#f97316', '#64748b'];
 
 @Component({
   selector: 'app-distribucion-chart',
