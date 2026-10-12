@@ -175,6 +175,10 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 
 `.github/workflows/ci.yml` corre en cada push/PR a `develop` y `main`: tests del backend (contra Postgres real, servicio de GitHub Actions) y tests + build del frontend. El **deploy** no se dispara desde Actions: Render y Vercel despliegan automáticamente al detectar un push en la rama conectada (su integración nativa con GitHub), que es el patrón estándar para estas plataformas y evita depender de tokens/deploy-hooks adicionales en el pipeline.
 
+## Flujo de trabajo (Git)
+
+`develop` es la rama de trabajo: ahí se hacen los commits del día a día. `main` es la rama de producción: Render y Vercel solo despliegan desde ahí. Cuando un cambio en `develop` ya está probado, se integra con merge `--no-ff` a `main` y push a ambas ramas.
+
 ## Despliegue
 
 **URLs desplegadas**
@@ -183,7 +187,7 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 
 **Backend (Render)**
 1. Crear cuenta en [render.com](https://render.com) con GitHub.
-2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`, rama `develop`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
+2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`, rama `main`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
 3. Verificar en el servicio `datapulse-backend` → Environment que `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` tengan el dominio real que Render/Vercel asignaron (puede variar del esperado; en este despliegue Render agregó un sufijo, `datapulse-backend-xo0v.onrender.com`).
 4. El contenedor arranca con `backend/entrypoint.sh`: `migrate` → `seed_data` → `gunicorn`. El plan free no tiene Shell, así que no hay forma de correr el seed a mano — por eso queda dentro del arranque. `seed_data` es idempotente (`get_or_create`/`update_or_create`), así que repetirlo en cada deploy no duplica datos ni falla.
 
@@ -194,7 +198,7 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 2. Add New → Project → importar el mismo repo, root directory `frontend`. Vercel lee `frontend/vercel.json` para el build command y el output directory.
 3. Confirmar el dominio asignado y, si difiere del esperado, actualizar `CORS_ALLOWED_ORIGINS` en Render.
 
-**Nota sobre la rama por defecto:** Vercel importa desde la rama por defecto del repo en GitHub, y `main` todavía no tiene la carpeta `frontend` (todo el desarrollo vive en `develop` hasta el cierre). Por eso la rama por defecto en GitHub se cambió temporalmente a `develop`, y en Vercel (Settings → Environments → Production) la rama de producción también apunta a `develop`. Al hacer el merge final a `main`, hay que revertir las tres cosas juntas: rama por defecto en GitHub, `branch` en `render.yaml`, y rama de producción en Vercel.
+**Nota sobre la rama de producción:** la rama por defecto en GitHub, la rama de producción en Vercel (Settings → Environments → Production) y `branch` en `render.yaml` apuntan las tres a `main`. `develop` es solo la rama de trabajo; no dispara despliegues.
 
 **Incidentes reales durante el despliegue:**
 - El primer intento de Render falló con `Exited with status 127` porque Render no interpreta correctamente las comillas de un `dockerCommand` con `&&` encadenados en `render.yaml` — tomó toda la línea como un solo comando inexistente. Se solucionó moviendo la lógica de arranque a `backend/entrypoint.sh` (ejecutado vía `CMD ["sh", "/app/entrypoint.sh"]` en el Dockerfile) en vez de pasar un comando inline por YAML. El script usa `exec` para el paso final (`exec gunicorn ...`), para que gunicorn quede como PID 1 y reciba `SIGTERM` directo en los redeploys del plan free, en vez de quedar como proceso huérfano colgado de `sh`.
