@@ -11,7 +11,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
-    branch: develop
+    branch: main
     envVars:
       - key: POSTGRES_DB
         fromDatabase:
