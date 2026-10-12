@@ -1,0 +1,39 @@
+<div class="perfil-container">
+  <mat-card class="perfil-card">
+    <mat-card-header>
+      <mat-card-title>Mi perfil</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (usuario(); as u) {
+        <div class="datos-fijos">
+          <div><span>Email</span><strong>{{ u.email }}</strong></div>
+          <div><span>Rol</span><strong>{{ u.rol }}</strong></div>
+          <div><span>Miembro desde</span><strong>{{ u.fecha_creacion | date: 'longDate' }}</strong></div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+        <mat-form-field appearance="outline" class="campo-completo">
+          <mat-label>Nombre completo</mat-label>
+          <input matInput formControlName="nombre_completo" autocomplete="name" />
+          @if (form.controls.nombre_completo.invalid && form.controls.nombre_completo.touched) {
+            <mat-error>
+              @if (form.controls.nombre_completo.hasError('required')) {
+                El nombre es obligatorio.
+              } @else if (form.controls.nombre_completo.hasError('minlength')) {
+                Debe tener al menos 3 caracteres.
+              } @else if (form.controls.nombre_completo.hasError('servidor')) {
+                {{ form.controls.nombre_completo.getError('servidor') }}
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

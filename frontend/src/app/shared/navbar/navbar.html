@@ -6,7 +6,7 @@
   <span class="espacio"></span>
   @if (usuario$ | async; as usuario) {
     <app-alerta-badge />
-    <span class="usuario">{{ usuario.nombre_completo }}</span>
+    <span class="usuario" routerLink="/perfil">{{ usuario.nombre_completo }}</span>
     <button mat-button (click)="cerrarSesion()">Salir</button>
   }
 </mat-toolbar>

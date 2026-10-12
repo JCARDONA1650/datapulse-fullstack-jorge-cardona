@@ -1,0 +1,31 @@
+.perfil-container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.perfil-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.datos-fijos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  span {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.campo-completo {
+  width: 100%;
+  display: block;
+}

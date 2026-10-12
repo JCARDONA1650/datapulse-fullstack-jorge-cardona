@@ -16,7 +16,7 @@
         @if (indicadoresActuales().get(tipo); as indicador) {
           <mat-card>
             <mat-card-subtitle>{{ etiquetasTipo[tipo] }} ({{ indicador.anio }})</mat-card-subtitle>
-            <mat-card-title>{{ indicador.valor }} {{ indicador.unidad }}</mat-card-title>
+            <mat-card-title>{{ formatearIndicador(indicador) }}</mat-card-title>
           </mat-card>
         }
       }
@@ -46,9 +46,30 @@
           {{ indice.indice_compuesto }} - {{ indice.nivel_riesgo }}
         </div>
         <div class="desglose-scores">
-          <div><span>Economico</span><strong>{{ indice.score_economico }}</strong></div>
-          <div><span>Cambiario</span><strong>{{ indice.score_cambiario }}</strong></div>
-          <div><span>Estabilidad</span><strong>{{ indice.score_estabilidad }}</strong></div>
+          <div class="fila-score">
+            <div class="etiqueta-score"><span>Economico</span><strong>{{ indice.score_economico }}</strong></div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="$any(indice.score_economico)"
+              [style.--mat-progress-bar-active-indicator-color]="indice.color"
+            />
+          </div>
+          <div class="fila-score">
+            <div class="etiqueta-score"><span>Cambiario</span><strong>{{ indice.score_cambiario }}</strong></div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="$any(indice.score_cambiario)"
+              [style.--mat-progress-bar-active-indicator-color]="indice.color"
+            />
+          </div>
+          <div class="fila-score">
+            <div class="etiqueta-score"><span>Estabilidad</span><strong>{{ indice.score_estabilidad }}</strong></div>
+            <mat-progress-bar
+              mode="determinate"
+              [value]="$any(indice.score_estabilidad)"
+              [style.--mat-progress-bar-active-indicator-color]="indice.color"
+            />
+          </div>
         </div>
       </mat-card>
     }

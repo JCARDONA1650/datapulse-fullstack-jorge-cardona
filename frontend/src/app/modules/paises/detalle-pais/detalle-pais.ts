@@ -4,6 +4,7 @@ import { Component, computed, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
@@ -34,6 +35,7 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
     MatCardModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatTableModule,
     BaseChartDirective,
@@ -45,6 +47,7 @@ export class DetallePais {
   private readonly route = inject(ActivatedRoute);
   private readonly paisService = inject(PaisService);
   private readonly riesgoService = inject(RiesgoService);
+  private readonly decimalPipe = inject(DecimalPipe);
 
   protected readonly columnasHistoricoRiesgo = ['fecha_calculo', 'indice_compuesto', 'nivel_riesgo'];
 
@@ -130,5 +133,19 @@ export class DetallePais {
 
   protected bandera(codigoIso: string): string {
     return `https://flagcdn.com/w80/${codigoIso.toLowerCase()}.png`;
+  }
+
+  protected formatearIndicador(indicador: IndicadorEconomico): string {
+    const valor = Number(indicador.valor);
+    switch (indicador.unidad) {
+      case 'USD_MILES_MILLONES':
+        return `USD ${this.decimalPipe.transform(valor, '1.0-2')} mil millones`;
+      case 'USD':
+        return `USD ${this.decimalPipe.transform(valor, '1.0-0')}`;
+      case 'PORCENTAJE':
+        return `${this.decimalPipe.transform(valor, '1.1-1')}%`;
+      default:
+        return `${valor}`;
+    }
   }
 }
