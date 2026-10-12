@@ -9,7 +9,7 @@
         <div class="datos-fijos">
           <div><span>Email</span><strong>{{ u.email }}</strong></div>
           <div><span>Rol</span><strong>{{ u.rol }}</strong></div>
-          <div><span>Miembro desde</span><strong>{{ u.fecha_creacion | date: 'longDate' }}</strong></div>
+          <div><span>Miembro desde</span><strong>{{ u.fecha_creacion | date: 'longDate':undefined:'es-CO' }}</strong></div>
         </div>
       }
 

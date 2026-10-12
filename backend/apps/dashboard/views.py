@@ -1,5 +1,4 @@
-from django.db.models import Avg, Q
-from django.utils import timezone
+from django.db.models import Avg, Max, Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
@@ -69,10 +68,15 @@ class DashboardTendenciasView(APIView):
         codigos = request.query_params.get('paises', '')
         codigos_lista = [codigo.strip() for codigo in codigos.split(',') if codigo.strip()][:MAXIMO_PAISES_COMPARACION]
 
-        desde = timezone.now().year - ANIOS_TENDENCIA
-        queryset = IndicadorEconomico.objects.filter(tipo=tipo, anio__gte=desde)
+        queryset = IndicadorEconomico.objects.filter(tipo=tipo)
         if codigos_lista:
             queryset = queryset.filter(pais_id__in=codigos_lista)
+
+        # Los ultimos N anios con datos, no "anio actual - N": los indicadores del seed
+        # no necesariamente llegan hasta el anio en curso.
+        ultimo_anio = queryset.aggregate(Max('anio'))['anio__max']
+        if ultimo_anio is not None:
+            queryset = queryset.filter(anio__gte=ultimo_anio - ANIOS_TENDENCIA + 1)
 
         resultado: dict[str, list[dict]] = {}
         for indicador in queryset.order_by('anio'):

@@ -76,3 +76,17 @@ class DashboardTests(APITestCase):
         self.assertIn('CO', response.data)
         self.assertEqual(response.data['CO'][0]['valor'], 6800.0)
         self.assertNotIn('BR', response.data)
+
+    def test_tendencias_usa_los_ultimos_5_anios_con_datos_no_el_anio_actual(self):
+        # Los datos del seed llegan hasta 2023 aunque el reloj del servidor ya vaya
+        # mas adelante; la ventana debe anclarse al ultimo anio CON datos, no a "hoy".
+        for anio in range(2019, 2024):
+            IndicadorEconomico.objects.update_or_create(
+                pais=self.co, tipo=IndicadorEconomico.Tipo.INFLACION, anio=anio,
+                defaults={'valor': 5, 'unidad': IndicadorEconomico.Unidad.PORCENTAJE, 'fuente': IndicadorEconomico.Fuente.MANUAL},
+            )
+
+        response = self.client.get('/api/dashboard/tendencias/?tipo=INFLACION&paises=CO')
+
+        anios = {punto['anio'] for punto in response.data['CO']}
+        self.assertEqual(anios, {2019, 2020, 2021, 2022, 2023})

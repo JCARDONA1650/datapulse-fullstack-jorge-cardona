@@ -40,6 +40,7 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
     MatTableModule,
     BaseChartDirective,
   ],
+  providers: [DecimalPipe],
   templateUrl: './detalle-pais.html',
   styleUrl: './detalle-pais.scss',
 })
