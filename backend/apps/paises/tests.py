@@ -55,10 +55,10 @@ class TipoCambioModelTests(TestCase):
             )
 
 
-def _respuesta_world_bank(valor, anio):
+def _respuesta_world_bank(registros):
     return MagicMock(
         status_code=200,
-        json=lambda: [{'page': 1}, [{'date': str(anio), 'value': valor}]],
+        json=lambda: [{'page': 1}, registros],
         raise_for_status=lambda: None,
     )
 
@@ -69,23 +69,38 @@ class SincronizarIndicadoresTests(TestCase):
 
     @patch('apps.paises.services.requests.get')
     def test_crea_indicadores_desde_world_bank(self, mock_get):
-        mock_get.return_value = _respuesta_world_bank(9.2, 2023)
+        mock_get.return_value = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
 
         resultado = sincronizar_indicadores()
 
         self.assertIn('CO', resultado['paises_procesados'])
         self.assertEqual(resultado['errores'], [])
         self.assertTrue(IndicadorEconomico.objects.filter(pais=self.pais, anio=2023).exists())
+        # Una sola llamada por indicador (6), ya no una por pais x indicador.
+        self.assertEqual(mock_get.call_count, 6)
 
     @patch('apps.paises.services.requests.get')
-    def test_continua_si_un_pais_falla(self, mock_get):
+    def test_continua_si_un_indicador_falla(self, mock_get):
         crear_pais(codigo_iso='BR', nombre='Brasil', moneda_codigo='BRL')
         mock_get.side_effect = ConnectionError('timeout')
 
         resultado = sincronizar_indicadores()
 
         self.assertEqual(resultado['paises_procesados'], [])
-        self.assertEqual(len(resultado['errores']), 2)
+        # 2 paises x 6 indicadores: cada llamada fallida reporta un error por pais.
+        self.assertEqual(len(resultado['errores']), 12)
+
+    @patch('apps.paises.services.requests.get')
+    def test_los_demas_indicadores_se_guardan_si_uno_falla(self, mock_get):
+        registros_ok = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
+        mock_get.side_effect = [ConnectionError('timeout'), registros_ok, registros_ok, registros_ok, registros_ok, registros_ok]
+
+        resultado = sincronizar_indicadores()
+
+        self.assertNotIn('CO', resultado['paises_procesados'])
+        self.assertEqual(len(resultado['errores']), 1)
+        self.assertEqual(mock_get.call_count, 6)
+        self.assertTrue(IndicadorEconomico.objects.filter(pais=self.pais).exists())
 
 
 class SincronizarTiposCambioTests(TestCase):
@@ -167,7 +182,7 @@ class PaisViewSetTests(APITestCase):
 
     @patch('apps.paises.services.requests.get')
     def test_sync_indicadores_permite_admin(self, mock_get):
-        mock_get.return_value = _respuesta_world_bank(9.2, 2023)
+        mock_get.return_value = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
         self.client.force_authenticate(self.admin)
         response = self.client.post('/api/paises/sync-indicadores/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
