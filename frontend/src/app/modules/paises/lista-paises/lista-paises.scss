@@ -2,6 +2,30 @@
   padding: 24px;
 }
 
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.acciones-admin {
+  display: flex;
+  gap: 8px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  mat-spinner {
+    display: inline-block;
+  }
+}
+
 .filtros {
   display: flex;
   gap: 16px;

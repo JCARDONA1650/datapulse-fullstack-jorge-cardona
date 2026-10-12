@@ -52,6 +52,11 @@ export interface FiltrosPaises {
   ordering?: string;
 }
 
+export interface ResultadoSincronizacion {
+  paises_procesados: string[];
+  errores: { pais: string; error: string }[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class PaisService {
   private readonly api = inject(ApiService);
@@ -78,7 +83,7 @@ export class PaisService {
     return this.api.get<RespuestaPaginada<TipoCambio>>(`/paises/${codigoIso}/tipo-cambio/`, filtros);
   }
 
-  sincronizarIndicadores(): Observable<unknown> {
-    return this.api.post('/paises/sync-indicadores/', {});
+  sincronizarIndicadores(): Observable<ResultadoSincronizacion> {
+    return this.api.post<ResultadoSincronizacion>('/paises/sync-indicadores/', {});
   }
 }
