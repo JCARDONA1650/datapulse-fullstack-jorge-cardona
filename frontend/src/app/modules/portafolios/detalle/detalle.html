@@ -44,7 +44,11 @@
       }
     </div>
 
-    <div class="tabla-scroll">
+    @if (portafolio()!.posiciones.length === 0) {
+      <p class="estado-vacio">Agrega una posicion para empezar a monitorear este portafolio.</p>
+    }
+
+    <div class="tabla-scroll" [hidden]="portafolio()!.posiciones.length === 0">
     <table mat-table [dataSource]="portafolio()!.posiciones" class="tabla-posiciones">
       <ng-container matColumnDef="pais_nombre">
         <th mat-header-cell *matHeaderCellDef>Pais</th>

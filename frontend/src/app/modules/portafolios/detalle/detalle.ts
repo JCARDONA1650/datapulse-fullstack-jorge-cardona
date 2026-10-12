@@ -1,5 +1,4 @@
 import { DecimalPipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,7 +12,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subject, startWith, switchMap } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/services/auth.service';
-import { DatosPosicion, Posicion, PortafolioService } from '../../../core/services/portafolio.service';
+import { Posicion, PortafolioService } from '../../../core/services/portafolio.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { DistribucionChart } from '../distribucion-chart/distribucion-chart';
 import { PosicionForm } from '../posicion-form/posicion-form';
@@ -64,32 +63,30 @@ export class Detalle {
     return portafolio.es_propio || this.authService.tieneRol(['ADMIN']);
   }
 
+  private posicionesActivas(): Posicion[] {
+    return (this.portafolio()?.posiciones ?? []).filter((posicion) => !posicion.fecha_salida);
+  }
+
   protected agregarPosicion(): void {
-    const ref = this.dialog.open(PosicionForm, { data: {} });
-    ref.afterClosed().subscribe((datos: DatosPosicion | null) => {
-      if (datos) {
-        this.portafolioService.crearPosicion(this.portafolioId, datos).subscribe({
-          next: () => {
-            this.snackBar.open('Posicion agregada.', 'Cerrar', { duration: 3000 });
-            this.recargar$.next();
-          },
-          error: (error: HttpErrorResponse) => this.mostrarErrorValidacion(error),
-        });
+    const ref = this.dialog.open(PosicionForm, {
+      data: { portafolioId: this.portafolioId, posicionesActivas: this.posicionesActivas() },
+    });
+    ref.afterClosed().subscribe((exito: boolean | null) => {
+      if (exito) {
+        this.snackBar.open('Posicion agregada.', 'Cerrar', { duration: 3000 });
+        this.recargar$.next();
       }
     });
   }
 
   protected editarPosicion(posicion: Posicion): void {
-    const ref = this.dialog.open(PosicionForm, { data: { posicion } });
-    ref.afterClosed().subscribe((datos: DatosPosicion | null) => {
-      if (datos) {
-        this.portafolioService.actualizarPosicion(this.portafolioId, posicion.id, datos).subscribe({
-          next: () => {
-            this.snackBar.open('Posicion actualizada.', 'Cerrar', { duration: 3000 });
-            this.recargar$.next();
-          },
-          error: (error: HttpErrorResponse) => this.mostrarErrorValidacion(error),
-        });
+    const ref = this.dialog.open(PosicionForm, {
+      data: { portafolioId: this.portafolioId, posicion, posicionesActivas: this.posicionesActivas() },
+    });
+    ref.afterClosed().subscribe((exito: boolean | null) => {
+      if (exito) {
+        this.snackBar.open('Posicion actualizada.', 'Cerrar', { duration: 3000 });
+        this.recargar$.next();
       }
     });
   }
@@ -122,13 +119,5 @@ export class Detalle {
       enlace.click();
       window.URL.revokeObjectURL(url);
     });
-  }
-
-  private mostrarErrorValidacion(error: HttpErrorResponse): void {
-    const mensaje = error.error?.mensaje;
-    if (mensaje && typeof mensaje === 'object') {
-      const primerError = Object.values(mensaje)[0];
-      this.snackBar.open(Array.isArray(primerError) ? primerError[0] : String(primerError), 'Cerrar', { duration: 5000 });
-    }
   }
 }
