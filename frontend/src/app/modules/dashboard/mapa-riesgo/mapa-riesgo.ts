@@ -18,6 +18,7 @@ export class MapaRiesgo implements AfterViewInit, OnDestroy {
   private readonly contenedor = viewChild.required<ElementRef<HTMLDivElement>>('mapaEl');
   private mapa: L.Map | null = null;
   private marcadores: L.CircleMarker[] = [];
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor() {
     effect(() => {
@@ -26,15 +27,28 @@ export class MapaRiesgo implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.mapa = L.map(this.contenedor().nativeElement, { scrollWheelZoom: false }).setView(CENTRO_LATAM, ZOOM_INICIAL);
+    const elemento = this.contenedor().nativeElement;
+    this.mapa = L.map(elemento, { scrollWheelZoom: false }).setView(CENTRO_LATAM, ZOOM_INICIAL);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 18,
     }).addTo(this.mapa);
+
+    // El contenedor puede no tener aun su tamano final cuando se crea el mapa (p. ej.
+    // dentro de un mat-card que todavia esta maquetando el layout de dos columnas), lo
+    // que deja zonas grises hasta el primer resize manual. ResizeObserver dispara al
+    // observar por primera vez y cada vez que el tamano real cambia despues.
+    this.resizeObserver = new ResizeObserver(() => {
+      this.mapa?.invalidateSize();
+      this.ajustarVista();
+    });
+    this.resizeObserver.observe(elemento);
+
     this.dibujarMarcadores(this.puntos());
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.mapa?.remove();
   }
 
@@ -58,9 +72,14 @@ export class MapaRiesgo implements AfterViewInit, OnDestroy {
         .addTo(this.mapa!),
     );
 
-    if (puntos.length > 0) {
-      const limites = L.latLngBounds(puntos.map((punto) => [punto.latitud, punto.longitud] as L.LatLngTuple));
-      this.mapa.fitBounds(limites, { padding: [24, 24] });
+    this.ajustarVista();
+  }
+
+  private ajustarVista(): void {
+    if (!this.mapa || this.marcadores.length === 0) {
+      return;
     }
+    const limites = L.latLngBounds(this.marcadores.map((marcador) => marcador.getLatLng()));
+    this.mapa.fitBounds(limites, { padding: [24, 24] });
   }
 }
