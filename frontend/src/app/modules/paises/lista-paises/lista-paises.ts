@@ -85,8 +85,12 @@ export class ListaPaises {
     this.paisService.sincronizarIndicadores().subscribe({
       next: (resultado) => {
         this.sincronizando.set(false);
-        const mensaje = `Sincronizacion completa: ${resultado.paises_procesados.length} paises procesados, ${resultado.errores.length} errores.`;
-        this.snackBar.open(mensaje, 'Cerrar', { duration: 6000 });
+        const partes = [`${resultado.paises_procesados.length} paises actualizados`];
+        if (resultado.indicadores_con_error.length > 0) {
+          const plural = resultado.indicadores_con_error.length > 1 ? 'es' : '';
+          partes.push(`${resultado.indicadores_con_error.length} indicador${plural} con error (${resultado.indicadores_con_error.join(', ')})`);
+        }
+        this.snackBar.open(`Sincronizacion completa: ${partes.join(', ')}.`, 'Cerrar', { duration: 6000 });
         this.recargar$.next();
       },
       error: (error: HttpErrorResponse) => {

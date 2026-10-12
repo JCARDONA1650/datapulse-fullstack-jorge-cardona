@@ -36,7 +36,7 @@
 
     <mat-card class="tarjeta-grafico">
       <mat-card-subtitle>Tipo de cambio - ultimos 30 dias</mat-card-subtitle>
-      <canvas baseChart [data]="datosGraficoTipoCambio()" type="line"></canvas>
+      <canvas baseChart [data]="datosGraficoTipoCambio()" [options]="opcionesGraficoTipoCambio" type="line"></canvas>
     </mat-card>
 
     @if (riesgo(); as indice) {

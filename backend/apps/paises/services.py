@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 from django.conf import settings
@@ -19,6 +20,15 @@ INDICADORES_WORLD_BANK = {
     'NY.GDP.PCAP.CD': IndicadorEconomico.Tipo.PIB_PERCAPITA,
 }
 
+ETIQUETA_INDICADOR = {
+    IndicadorEconomico.Tipo.PIB: 'PIB',
+    IndicadorEconomico.Tipo.INFLACION: 'Inflacion',
+    IndicadorEconomico.Tipo.DESEMPLEO: 'Desempleo',
+    IndicadorEconomico.Tipo.BALANZA_COMERCIAL: 'Balanza comercial',
+    IndicadorEconomico.Tipo.DEUDA_PIB: 'Deuda/PIB',
+    IndicadorEconomico.Tipo.PIB_PERCAPITA: 'PIB per capita',
+}
+
 UNIDAD_POR_TIPO = {
     IndicadorEconomico.Tipo.PIB: IndicadorEconomico.Unidad.USD_MILES_MILLONES,
     IndicadorEconomico.Tipo.INFLACION: IndicadorEconomico.Unidad.PORCENTAJE,
@@ -31,46 +41,76 @@ UNIDAD_POR_TIPO = {
 ANIOS_HISTORICO = 5
 TASA_FIJA_RESPALDO = {'PAB': 1.0}
 
+MAXIMO_REINTENTOS = 2
+TIMEOUT_POR_INTENTO_SEGUNDOS = 20
+# Techo propio por debajo del --timeout de gunicorn (120s), para que la sincronizacion
+# completa nunca llegue a matar el worker aunque todos los indicadores necesiten reintentos.
+PRESUPUESTO_SINCRONIZACION_SEGUNDOS = 100
+
 
 def sincronizar_indicadores():
+    inicio = time.monotonic()
     anio_actual = timezone.now().year
     desde = anio_actual - ANIOS_HISTORICO
     paises = {pais.codigo_iso: pais for pais in Pais.objects.filter(activo=True)}
     codigos_paises = ';'.join(paises.keys())
 
-    paises_con_error = set()
+    paises_actualizados = set()
+    indicadores_con_error = []
     errores = []
 
     logger.info('Inicio de sincronizacion de indicadores World Bank')
 
     for codigo_indicador, tipo in INDICADORES_WORLD_BANK.items():
-        try:
-            registros = _obtener_indicador_world_bank(codigos_paises, codigo_indicador, desde, anio_actual)
-        except Exception as exc:
-            logger.error('Error sincronizando el indicador %s: %s', codigo_indicador, exc)
-            for codigo_iso in paises:
-                paises_con_error.add(codigo_iso)
-                errores.append({'pais': codigo_iso, 'error': f'{codigo_indicador}: {exc}'})
+        registros = None
+        error_final = None
+
+        for intento in range(MAXIMO_REINTENTOS + 1):
+            presupuesto_restante = PRESUPUESTO_SINCRONIZACION_SEGUNDOS - (time.monotonic() - inicio)
+            if presupuesto_restante <= 0:
+                error_final = TimeoutError('se agoto el presupuesto de tiempo de la sincronizacion')
+                break
+
+            timeout_intento = min(TIMEOUT_POR_INTENTO_SEGUNDOS, presupuesto_restante)
+            try:
+                registros = _obtener_indicador_world_bank(codigos_paises, codigo_indicador, desde, anio_actual, timeout_intento)
+                error_final = None
+                break
+            except Exception as exc:
+                error_final = exc
+                logger.warning(
+                    'Intento %s/%s fallido para el indicador %s: %s',
+                    intento + 1, MAXIMO_REINTENTOS + 1, codigo_indicador, exc,
+                )
+
+        if error_final is not None:
+            logger.error('Error sincronizando el indicador %s: %s', codigo_indicador, error_final)
+            indicadores_con_error.append(ETIQUETA_INDICADOR[tipo])
+            errores.append({'indicador': ETIQUETA_INDICADOR[tipo], 'error': str(error_final)})
             continue
 
-        _guardar_indicador(registros, paises, tipo)
+        paises_actualizados.update(_guardar_indicador(registros, paises, tipo))
 
-    paises_procesados = [codigo_iso for codigo_iso in paises if codigo_iso not in paises_con_error]
+    paises_procesados = sorted(paises_actualizados)
 
     logger.info(
-        'Fin de sincronizacion de indicadores: %s paises ok, %s errores',
-        len(paises_procesados), len(errores),
+        'Fin de sincronizacion de indicadores: %s paises actualizados, %s indicadores con error',
+        len(paises_procesados), len(indicadores_con_error),
     )
     generar_alertas_sincronizacion(paises_procesados)
-    return {'paises_procesados': paises_procesados, 'errores': errores}
+    return {
+        'paises_procesados': paises_procesados,
+        'indicadores_con_error': indicadores_con_error,
+        'errores': errores,
+    }
 
 
-def _obtener_indicador_world_bank(codigos_paises, codigo_indicador, desde, hasta):
+def _obtener_indicador_world_bank(codigos_paises, codigo_indicador, desde, hasta, timeout):
     """Una sola llamada para todos los paises (en vez de una por pais) para no
     superar el timeout del worker de gunicorn con decenas de llamadas secuenciales."""
     url = f'{settings.WORLDBANK_API_BASE_URL}/country/{codigos_paises}/indicator/{codigo_indicador}'
     respuesta = requests.get(
-        url, params={'date': f'{desde}:{hasta}', 'format': 'json', 'per_page': 500}, timeout=10,
+        url, params={'date': f'{desde}:{hasta}', 'format': 'json', 'per_page': 500}, timeout=timeout,
     )
     respuesta.raise_for_status()
     datos = respuesta.json()
@@ -81,6 +121,11 @@ def _obtener_indicador_world_bank(codigos_paises, codigo_indicador, desde, hasta
 
 
 def _guardar_indicador(registros, paises, tipo):
+    """Guarda los valores recibidos y devuelve los codigos de los paises a los que
+    se les actualizo al menos un dato (asi un pais cuenta como 'actualizado' aunque
+    algun otro indicador haya fallado)."""
+    paises_con_dato = set()
+
     for registro in registros:
         if registro['value'] is None:
             continue
@@ -103,6 +148,9 @@ def _guardar_indicador(registros, paises, tipo):
                 'fuente': IndicadorEconomico.Fuente.WORLD_BANK,
             },
         )
+        paises_con_dato.add(pais.codigo_iso)
+
+    return paises_con_dato
 
 
 def sincronizar_tipos_cambio():

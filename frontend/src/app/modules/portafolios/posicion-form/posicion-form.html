@@ -2,7 +2,7 @@
 
 <form [formGroup]="form" (ngSubmit)="guardar()">
   <mat-dialog-content>
-    <mat-form-field appearance="outline" class="campo-completo">
+    <mat-form-field appearance="outline" class="campo-completo" subscriptSizing="dynamic">
       <mat-label>Pais</mat-label>
       <input
         matInput
@@ -20,7 +20,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="campo-completo">
+    <mat-form-field appearance="outline" class="campo-completo" subscriptSizing="dynamic">
       <mat-label>Tipo de activo</mat-label>
       <mat-select formControlName="tipo_activo">
         @for (tipo of tiposActivo; track tipo.valor) {
@@ -42,7 +42,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="campo-completo">
+    <mat-form-field appearance="outline" class="campo-completo" subscriptSizing="dynamic">
       <mat-label>Monto de inversion (USD)</mat-label>
       <input matInput type="number" formControlName="monto_inversion_usd" min="1000" max="10000000" />
       <mat-hint>{{ (form.controls.monto_inversion_usd.value ?? 0) | number }} USD</mat-hint>
@@ -63,7 +63,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="campo-completo">
+    <mat-form-field appearance="outline" class="campo-completo" subscriptSizing="dynamic">
       <mat-label>Fecha de entrada</mat-label>
       <input matInput type="date" formControlName="fecha_entrada" [max]="hoy" />
       @if (form.controls.fecha_entrada.invalid && form.controls.fecha_entrada.touched) {
@@ -79,7 +79,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="campo-completo">
+    <mat-form-field appearance="outline" class="campo-completo" subscriptSizing="dynamic">
       <mat-label>Notas (opcional)</mat-label>
       <textarea matInput formControlName="notas" maxlength="200" rows="2"></textarea>
     </mat-form-field>
