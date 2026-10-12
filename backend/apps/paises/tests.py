@@ -74,33 +74,53 @@ class SincronizarIndicadoresTests(TestCase):
         resultado = sincronizar_indicadores()
 
         self.assertIn('CO', resultado['paises_procesados'])
+        self.assertEqual(resultado['indicadores_con_error'], [])
         self.assertEqual(resultado['errores'], [])
         self.assertTrue(IndicadorEconomico.objects.filter(pais=self.pais, anio=2023).exists())
         # Una sola llamada por indicador (6), ya no una por pais x indicador.
         self.assertEqual(mock_get.call_count, 6)
 
     @patch('apps.paises.services.requests.get')
-    def test_continua_si_un_indicador_falla(self, mock_get):
+    def test_un_pais_cuenta_como_actualizado_si_al_menos_un_indicador_tiene_su_dato(self, mock_get):
         crear_pais(codigo_iso='BR', nombre='Brasil', moneda_codigo='BRL')
-        mock_get.side_effect = ConnectionError('timeout')
+        con_ambos = _respuesta_world_bank([
+            {'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}},
+            {'date': '2023', 'value': 5.1, 'country': {'id': 'BR'}},
+        ])
+        solo_co = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
+        # El primer indicador trae datos de los 2 paises; a los demas les falta el
+        # dato de BR en World Bank (normal, no es un error de red).
+        mock_get.side_effect = [con_ambos] + [solo_co] * 5
 
         resultado = sincronizar_indicadores()
 
-        self.assertEqual(resultado['paises_procesados'], [])
-        # 2 paises x 6 indicadores: cada llamada fallida reporta un error por pais.
-        self.assertEqual(len(resultado['errores']), 12)
+        self.assertEqual(sorted(resultado['paises_procesados']), ['BR', 'CO'])
 
     @patch('apps.paises.services.requests.get')
-    def test_los_demas_indicadores_se_guardan_si_uno_falla(self, mock_get):
-        registros_ok = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
-        mock_get.side_effect = [ConnectionError('timeout'), registros_ok, registros_ok, registros_ok, registros_ok, registros_ok]
+    def test_reintenta_hasta_2_veces_y_se_recupera(self, mock_get):
+        registro_ok = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
+        # El primer indicador falla 2 veces y se recupera al tercer intento; el resto, a la primera.
+        mock_get.side_effect = [ConnectionError('timeout'), ConnectionError('timeout'), registro_ok] + [registro_ok] * 5
 
         resultado = sincronizar_indicadores()
 
-        self.assertNotIn('CO', resultado['paises_procesados'])
+        self.assertEqual(resultado['indicadores_con_error'], [])
+        self.assertEqual(resultado['paises_procesados'], ['CO'])
+        self.assertEqual(mock_get.call_count, 8)  # 3 intentos del primero + 1 de cada uno de los otros 5
+
+    @patch('apps.paises.services.requests.get')
+    def test_indicador_con_error_despues_de_agotar_los_reintentos(self, mock_get):
+        crear_pais(codigo_iso='BR', nombre='Brasil', moneda_codigo='BRL')
+        registro_ok = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
+        # El primer indicador (PIB) falla siempre; el resto responde bien.
+        mock_get.side_effect = [ConnectionError('timeout')] * 3 + [registro_ok] * 5
+
+        resultado = sincronizar_indicadores()
+
+        self.assertEqual(resultado['indicadores_con_error'], ['PIB'])
         self.assertEqual(len(resultado['errores']), 1)
-        self.assertEqual(mock_get.call_count, 6)
-        self.assertTrue(IndicadorEconomico.objects.filter(pais=self.pais).exists())
+        self.assertEqual(resultado['paises_procesados'], ['CO'])
+        self.assertEqual(mock_get.call_count, 8)  # 3 intentos del primero + 1 de cada uno de los otros 5
 
 
 class SincronizarTiposCambioTests(TestCase):

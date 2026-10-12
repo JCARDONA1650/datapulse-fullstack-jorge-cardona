@@ -54,7 +54,8 @@ export interface FiltrosPaises {
 
 export interface ResultadoSincronizacion {
   paises_procesados: string[];
-  errores: { pais: string; error: string }[];
+  indicadores_con_error: string[];
+  errores: { indicador: string; error: string }[];
 }
 
 @Injectable({ providedIn: 'root' })
