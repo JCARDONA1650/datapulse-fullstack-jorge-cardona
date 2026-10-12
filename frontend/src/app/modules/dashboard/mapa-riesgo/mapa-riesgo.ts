@@ -57,5 +57,10 @@ export class MapaRiesgo implements AfterViewInit, OnDestroy {
         .bindTooltip(`${punto.nombre}<br>IRPC: ${punto.indice_compuesto} (${punto.nivel_riesgo})`)
         .addTo(this.mapa!),
     );
+
+    if (puntos.length > 0) {
+      const limites = L.latLngBounds(puntos.map((punto) => [punto.latitud, punto.longitud] as L.LatLngTuple));
+      this.mapa.fitBounds(limites, { padding: [24, 24] });
+    }
   }
 }

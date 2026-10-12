@@ -3,6 +3,7 @@
   class="boton-alertas"
   [matBadge]="noLeidas() > 0 ? noLeidas() : undefined"
   matBadgeColor="warn"
+  matBadgePosition="below after"
   [attr.aria-label]="noLeidas() > 0 ? 'Alertas, ' + noLeidas() + ' sin leer' : 'Alertas'"
   (click)="irAAlertas()"
 >
