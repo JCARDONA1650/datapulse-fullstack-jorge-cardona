@@ -1,11 +1,19 @@
+from datetime import timedelta
+
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from apps.alertas.models import Alerta
+from apps.paises.models import Pais
 from apps.paises.seed import crear_indicadores, crear_paises, crear_tipos_cambio
 from apps.portafolios.seed import crear_portafolios
 from apps.riesgo.models import IndiceRiesgo
-from apps.riesgo.services import calcular_irpc_todos
+from apps.riesgo.services import calcular_irpc_pais
 from apps.usuarios.models import Usuario
+
+# Dias hacia atras (desde hoy) de cada calculo historico del IRPC que se siembra por
+# pais, para que el ranking tenga Variacion/Tendencia y el detalle tenga historico.
+DIAS_HISTORICO_IRPC = [20, 10, 0]
 
 USUARIOS_INICIALES = [
     {'email': 'admin@datapulse.com', 'nombre_completo': 'Administrador DataPulse', 'rol': Usuario.Rol.ADMIN, 'is_staff': True, 'is_superuser': True},
@@ -32,11 +40,18 @@ class Command(BaseCommand):
 
         IndiceRiesgo.objects.all().delete()
         Alerta.objects.all().delete()
-        calcular_irpc_todos()
-        self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises')
+        self.sembrar_historico_irpc()
+        self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises (3 fechas por pais)')
 
         crear_portafolios()
         self.stdout.write('Portafolios de ejemplo creados')
+
+    def sembrar_historico_irpc(self):
+        ahora = timezone.now()
+        for pais in Pais.objects.filter(activo=True):
+            for dias_atras in DIAS_HISTORICO_IRPC:
+                indice = calcular_irpc_pais(pais)
+                IndiceRiesgo.objects.filter(pk=indice.pk).update(fecha_calculo=ahora - timedelta(days=dias_atras))
 
     def crear_usuarios(self):
         for datos in USUARIOS_INICIALES:

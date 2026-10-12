@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./modules/perfil/perfil').then((m) => m.Perfil),
+  },
+  {
     path: 'paises',
     canActivate: [authGuard],
     loadChildren: () => import('./modules/paises/paises.routes').then((m) => m.paisesRoutes),

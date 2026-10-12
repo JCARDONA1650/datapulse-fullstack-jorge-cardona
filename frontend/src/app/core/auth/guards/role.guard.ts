@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { AuthService, Rol } from '../services/auth.service';
 
@@ -8,10 +9,17 @@ export const roleGuard: CanActivateFn = (route) => {
   const router = inject(Router);
   const rolesPermitidos = (route.data['roles'] as Rol[] | undefined) ?? [];
 
-  if (rolesPermitidos.length === 0 || authService.tieneRol(rolesPermitidos)) {
+  if (rolesPermitidos.length === 0) {
     return true;
   }
 
-  router.navigate(['/dashboard']);
-  return false;
+  return authService.perfilListo().pipe(
+    map(() => {
+      if (authService.tieneRol(rolesPermitidos)) {
+        return true;
+      }
+      router.navigate(['/dashboard']);
+      return false;
+    }),
+  );
 };

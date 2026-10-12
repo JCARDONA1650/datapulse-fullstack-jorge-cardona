@@ -1,5 +1,27 @@
 <div class="lista-paises-container">
-  <h1>Paises monitoreados</h1>
+  <div class="encabezado">
+    <h1>Paises monitoreados</h1>
+    @if (esAdmin()) {
+      <div class="acciones-admin">
+        <button mat-stroked-button (click)="sincronizarIndicadores()" [disabled]="sincronizando()">
+          @if (sincronizando()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>sync</mat-icon>
+          }
+          Sincronizar indicadores
+        </button>
+        <button mat-stroked-button (click)="recalcularRiesgo()" [disabled]="recalculando()">
+          @if (recalculando()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>calculate</mat-icon>
+          }
+          Recalcular riesgo
+        </button>
+      </div>
+    }
+  </div>
 
   <div class="filtros">
     <mat-form-field appearance="outline">

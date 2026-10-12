@@ -59,4 +59,39 @@ describe('AuthService', () => {
     expect(service.accessToken).toBeNull();
     expect(service.estaAutenticado()).toBeFalse();
   });
+
+  it('perfilListo carga el perfil via /auth/me/ si aun no esta en memoria (ej. tras un F5)', () => {
+    const usuario = {
+      id: 1,
+      email: 'admin@datapulse.com',
+      nombre_completo: 'Admin',
+      rol: 'ADMIN' as const,
+      activo: true,
+      fecha_creacion: '2026-01-01T00:00:00Z',
+    };
+
+    service.perfilListo().subscribe((respuesta) => {
+      expect(respuesta).toEqual(usuario);
+      expect(service.tieneRol(['ADMIN'])).toBeTrue();
+    });
+
+    httpMock.expectOne(`${environment.apiUrl}/auth/me/`).flush(usuario);
+  });
+
+  it('perfilListo no repite la peticion si el perfil ya esta cargado', () => {
+    const usuario = {
+      id: 1,
+      email: 'admin@datapulse.com',
+      nombre_completo: 'Admin',
+      rol: 'ADMIN' as const,
+      activo: true,
+      fecha_creacion: '2026-01-01T00:00:00Z',
+    };
+
+    service.cargarPerfil().subscribe();
+    httpMock.expectOne(`${environment.apiUrl}/auth/me/`).flush(usuario);
+
+    service.perfilListo().subscribe((respuesta) => expect(respuesta).toEqual(usuario));
+    httpMock.expectNone(`${environment.apiUrl}/auth/me/`);
+  });
 });

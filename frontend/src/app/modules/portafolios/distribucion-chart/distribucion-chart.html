@@ -1,1 +1,7 @@
-<canvas baseChart [data]="datosGrafico()" [type]="tipo()"></canvas>
+@if (datos() | keyvalue; as entradas) {
+  @if (entradas.length === 0) {
+    <p class="estado-vacio">Agrega una posicion para ver la distribucion.</p>
+  } @else {
+    <canvas baseChart [data]="datosGrafico()" [type]="tipo()"></canvas>
+  }
+}

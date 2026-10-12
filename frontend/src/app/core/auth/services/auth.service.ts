@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
 
@@ -76,6 +76,15 @@ export class AuthService {
   tieneRol(roles: Rol[]): boolean {
     const usuario = this.usuarioSubject.value;
     return !!usuario && roles.includes(usuario.rol);
+  }
+
+  /** Emite el perfil ya cargado, o lo carga si aun no esta disponible (p. ej. tras un F5). */
+  perfilListo(): Observable<Usuario | null> {
+    const actual = this.usuarioSubject.value;
+    if (actual) {
+      return of(actual);
+    }
+    return this.cargarPerfil().pipe(catchError(() => of(null)));
   }
 
   private guardarTokens(tokens: TokensRespuesta): void {

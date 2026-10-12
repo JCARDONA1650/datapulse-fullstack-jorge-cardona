@@ -1,3 +1,4 @@
+import { KeyValuePipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { ChartConfiguration, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -6,7 +7,7 @@ const PALETA = ['#1b75bb', '#29234f', '#06b6d4', '#8b5cf6', '#22c55e', '#eab308'
 
 @Component({
   selector: 'app-distribucion-chart',
-  imports: [BaseChartDirective],
+  imports: [KeyValuePipe, BaseChartDirective],
   templateUrl: './distribucion-chart.html',
   styleUrl: './distribucion-chart.scss',
 })
