@@ -56,6 +56,7 @@ export interface ResultadoSincronizacion {
   paises_procesados: string[];
   indicadores_con_error: string[];
   errores: { indicador: string; error: string }[];
+  paises_irpc_recalculados: number;
 }
 
 @Injectable({ providedIn: 'root' })

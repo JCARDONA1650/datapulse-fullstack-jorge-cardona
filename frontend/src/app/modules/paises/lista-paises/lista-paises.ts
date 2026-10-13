@@ -85,7 +85,10 @@ export class ListaPaises {
     this.paisService.sincronizarIndicadores().subscribe({
       next: (resultado) => {
         this.sincronizando.set(false);
-        const partes = [`${resultado.paises_procesados.length} paises actualizados`];
+        const partes = [
+          `${resultado.paises_procesados.length} paises actualizados`,
+          `IRPC recalculado para ${resultado.paises_irpc_recalculados}`,
+        ];
         if (resultado.indicadores_con_error.length > 0) {
           const plural = resultado.indicadores_con_error.length > 1 ? 'es' : '';
           partes.push(`${resultado.indicadores_con_error.length} indicador${plural} con error (${resultado.indicadores_con_error.join(', ')})`);
