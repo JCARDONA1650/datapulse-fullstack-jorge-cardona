@@ -14,6 +14,8 @@ Prueba técnica Fullstack (Angular + Django) para Mission S.A.S.
 | Autenticación | JWT (djangorestframework-simplejwt) |
 | Documentación API | drf-spectacular (Swagger / Redoc) |
 | Tareas programadas | Django management commands |
+| Gráficos | Chart.js (via ng2-charts) |
+| Mapa | Leaflet + tiles de OpenStreetMap |
 
 ## Decisiones técnicas y alternativas consideradas
 
@@ -21,7 +23,7 @@ Prueba técnica Fullstack (Angular + Django) para Mission S.A.S.
 - **Management commands en vez de Celery + Redis**: las 3 tareas (sincronización de indicadores, recálculo de IRPC, tipos de cambio) se ejecutan bajo demanda o por cron, sin necesidad de una cola de tareas. Esto simplifica el despliegue (sin Redis ni worker adicional) y el requerimiento lo permite explícitamente.
 - **PostgreSQL en Docker para desarrollo local**: se reutiliza el mismo `docker-compose.yml` que suma puntos extra, evitando instalar PostgreSQL de forma nativa.
 - **ADMIN puede editar/eliminar cualquier portafolio**, no solo los propios (un ANALISTA solo gestiona los suyos). Es la única lectura que hace consistente el escenario de prueba obligatorio #5 ("dos usuarios editan el mismo portafolio público"): sin esta regla, un portafolio solo lo puede editar su dueño y la concurrencia entre dos usuarios distintos nunca podría darse. Confirmado con Mission S.A.S. como un alcance válido (ver `documentacion/INCONSISTENCIAS.md`, punto 3).
-- **Mapa de riesgo como scatter de coordenadas reales, no un mapa SVG/GeoJSON de Latinoamerica.** El stack permitido para gráficos es ngx-charts, Chart.js o Plotly — ninguno trae mapas de paises listos sin una librería adicional (Leaflet, d3-geo). Usar latitud/longitud reales de cada país como ejes X/Y de un scatter de Chart.js, coloreado por nivel de riesgo, da una lectura geográfica razonable sin sumar una dependencia nueva fuera de lo permitido.
+- **Mapa de riesgo con Leaflet + tiles de OpenStreetMap**, en vez de un scatter de coordenadas en Chart.js (la primera versión). Chart.js/ngx-charts/Plotly no traen mapas de países listos sin una librería adicional, así que un scatter de latitud/longitud era la opción sin dependencias nuevas; tras una revisión funcional se decidió que esa lectura no era suficientemente geográfica y se sumó `leaflet` (único paquete nuevo del proyecto, consultado antes de instalarlo) para un mapa real con un marcador por país coloreado según su nivel de IRPC y tooltip con el detalle.
 - **`gunicorn` + `whitenoise`** para servir el backend en Docker/producción (en vez de `runserver`, que no es apto para producción). Whitenoise evita depender de un servidor de archivos estáticos aparte solo para el admin de Django y los assets de Swagger UI.
 - **E2E con Playwright** en vez de Cypress o Protractor: Angular CLI ya no incluye Protractor por defecto, y Playwright no exige un runner de navegador adicional ni configuración extra para correr en modo headless.
 - Resolución de los puntos ambiguos de los requerimientos: ver sección [Puntos ambiguos resueltos](#puntos-ambiguos-resueltos).
@@ -132,10 +134,10 @@ Backend en `http://localhost:8000/`, frontend en `http://localhost:4200/`. El `D
 
 ```
 cd backend
-python manage.py test        # 76 tests (auth + paises + riesgo + alertas + portafolios + dashboard)
+python manage.py test        # 84 tests (core + auth + paises + riesgo + alertas + portafolios + dashboard)
 
 cd frontend
-npm test -- --watch=false --browsers=ChromeHeadless   # 16 tests unitarios (servicios, guards, interceptor, componente)
+npm test -- --watch=false --browsers=ChromeHeadless   # 24 tests unitarios (servicios, guards, interceptor, pipes, directivas, componentes)
 npm run e2e                                           # 3 tests E2E con Playwright (requiere backend y frontend corriendo)
 ```
 
@@ -143,7 +145,7 @@ npm run e2e                                           # 3 tests E2E con Playwrig
 
 | # | Escenario | Dónde se cubre |
 |---|---|---|
-| 1 | API externa no disponible: la sincronización continúa con lo que obtenga y registra los errores | `apps/paises/services.py` (try/except por país) + `SincronizarIndicadoresTests.test_continua_si_un_pais_falla` |
+| 1 | API externa no disponible: la sincronización continúa con lo que obtenga y registra los errores | `apps/paises/services.py::sincronizar_indicadores` — una llamada a World Bank por indicador (los 10 países a la vez), hasta 2 reintentos con timeout de 20s cada uno y un presupuesto total propio por debajo del `--timeout` de gunicorn; un indicador que agota los reintentos no aborta el resto. Tests: `test_reintenta_hasta_2_veces_y_se_recupera`, `test_indicador_con_error_despues_de_agotar_los_reintentos` |
 | 2 | Token expirado: el frontend redirige a login con mensaje | `core/interceptors/error.interceptor.ts` (401 fuera de `/auth/login/` → logout + redirect + snackbar) |
 | 3 | Permisos insuficientes: VIEWER recibe 403 y no ve botones de crear/editar | `apps/core/permissions.py` (`NoEsViewer`) + `test_viewer_no_puede_crear`; frontend oculta botones con `puedeGestionar()` en `lista.ts`/`detalle.ts` |
 | 4 | Datos incompletos: el IRPC se calcula con lo disponible y marca los faltantes | `apps/riesgo/services.py` (`faltantes` en cada score) + `test_datos_incompletos_no_penaliza_y_registra_faltante` |
@@ -159,12 +161,14 @@ Documentación completa en Swagger: `http://localhost:8000/api/docs/` (local) o 
 ## Tareas programadas
 
 ```
-python manage.py sync_indicadores     # World Bank, 10 paises x 6 indicadores
+python manage.py sync_indicadores     # World Bank, 10 paises x 6 indicadores; recalcula el IRPC al terminar
 python manage.py sync_tipos_cambio    # ExchangeRate-API, tasa diaria
-python manage.py calcular_riesgo      # IRPC de los 10 paises
+python manage.py calcular_riesgo      # IRPC de los 10 paises (recalculo manual, sin sincronizar indicadores)
 ```
 
-Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaza los valores de ejemplo de Colombia (usados en el caso de prueba del IRPC) por datos reales de las APIs.
+`sync_indicadores` (y el endpoint `POST /api/paises/sync-indicadores/` equivalente) llaman a `calcular_irpc_todos()` al terminar, así que el IRPC queda consistente con los datos recién sincronizados sin un segundo paso manual.
+
+Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaza los valores de ejemplo de Colombia (usados en el caso de prueba del IRPC) por datos reales de las APIs; como `seed_data` ya no reescribe datos existentes, esos valores reales no se pierden en el siguiente reinicio del contenedor.
 
 ## Manejo de errores
 
@@ -189,7 +193,7 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 1. Crear cuenta en [render.com](https://render.com) con GitHub.
 2. New → Blueprint → conectar el repo `datapulse-fullstack-jorge-cardona`, rama `main`. Render lee `render.yaml` (en la raíz) y crea la base de datos Postgres y el servicio web automáticamente.
 3. Verificar en el servicio `datapulse-backend` → Environment que `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` tengan el dominio real que Render/Vercel asignaron (puede variar del esperado; en este despliegue Render agregó un sufijo, `datapulse-backend-xo0v.onrender.com`).
-4. El contenedor arranca con `backend/entrypoint.sh`: `migrate` → `seed_data` → `gunicorn`. El plan free no tiene Shell, así que no hay forma de correr el seed a mano — por eso queda dentro del arranque. `seed_data` es idempotente (`get_or_create`/`update_or_create`), así que repetirlo en cada deploy no duplica datos ni falla.
+4. El contenedor arranca con `backend/entrypoint.sh`: `migrate` → `seed_data` → `gunicorn`. El plan free no tiene Shell, así que no hay forma de correr el seed a mano — por eso queda dentro del arranque. `seed_data` es idempotente sin borrar (`get_or_create` + chequeo de tabla vacía): si países/indicadores/IRPC/alertas ya existen no los reescribe ni elimina, solo crea lo que falte, así que repetirlo en cada deploy no duplica datos, no falla, y no pisa datos reales que haya traído un admin con "Sincronizar indicadores".
 
 **Nota sobre el plan free:** el servicio se "duerme" tras un rato sin tráfico; la primera petición después de eso puede tardar **~1 minuto** en responder mientras el contenedor arranca de nuevo. Las siguientes son normales. Tenerlo en cuenta al grabar el video demostrativo (hacer un primer request de "calentamiento" antes de grabar).
 
@@ -206,7 +210,7 @@ Nota: ejecutar estos comandos sobre una base ya poblada por `seed_data` reemplaz
 
 ## Credenciales de prueba
 
-Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 3 años de indicadores, 30 dias de tipo de cambio, el IRPC calculado y 2 portafolios de ejemplo con posiciones). En el despliegue de Render el seed corre automáticamente en cada arranque, así que estas credenciales también funcionan en https://datapulse-frontend-beta.vercel.app:
+Ejecutar `python manage.py seed_data` (crea los 3 usuarios, los 10 paises con 5 años de indicadores (2019-2023), 30 dias de tipo de cambio, el IRPC calculado y 2 portafolios de ejemplo con posiciones). En el despliegue de Render el seed corre automáticamente en cada arranque, así que estas credenciales también funcionan en https://datapulse-frontend-beta.vercel.app:
 
 | Email | Password | Rol |
 |---|---|---|
