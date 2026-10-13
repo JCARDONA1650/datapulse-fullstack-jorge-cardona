@@ -16,6 +16,8 @@ import { catchError, switchMap } from 'rxjs/operators';
 
 import { IndicadorEconomico, PaisService, TipoIndicador } from '../../../core/services/pais.service';
 import { RiesgoService } from '../../../core/services/riesgo.service';
+import { ColorRiesgoDirective } from '../../../shared/directives/color-riesgo.directive';
+import { FormatoIndicadorPipe } from '../../../shared/pipes/formato-indicador.pipe';
 
 const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
   PIB: 'PIB',
@@ -39,8 +41,9 @@ const ETIQUETAS_TIPO: Record<TipoIndicador, string> = {
     MatProgressSpinnerModule,
     MatTableModule,
     BaseChartDirective,
+    ColorRiesgoDirective,
+    FormatoIndicadorPipe,
   ],
-  providers: [DecimalPipe],
   templateUrl: './detalle-pais.html',
   styleUrl: './detalle-pais.scss',
 })
@@ -48,7 +51,6 @@ export class DetallePais {
   private readonly route = inject(ActivatedRoute);
   private readonly paisService = inject(PaisService);
   private readonly riesgoService = inject(RiesgoService);
-  private readonly decimalPipe = inject(DecimalPipe);
 
   protected readonly columnasHistoricoRiesgo = ['fecha_calculo', 'indice_compuesto', 'nivel_riesgo'];
 
@@ -149,19 +151,5 @@ export class DetallePais {
 
   protected bandera(codigoIso: string): string {
     return `https://flagcdn.com/w80/${codigoIso.toLowerCase()}.png`;
-  }
-
-  protected formatearIndicador(indicador: IndicadorEconomico): string {
-    const valor = Number(indicador.valor);
-    switch (indicador.unidad) {
-      case 'USD_MILES_MILLONES':
-        return `USD ${this.decimalPipe.transform(valor, '1.0-2')} mil millones`;
-      case 'USD':
-        return `USD ${this.decimalPipe.transform(valor, '1.0-0')}`;
-      case 'PORCENTAJE':
-        return `${this.decimalPipe.transform(valor, '1.1-1')}%`;
-      default:
-        return `${valor}`;
-    }
   }
 }
