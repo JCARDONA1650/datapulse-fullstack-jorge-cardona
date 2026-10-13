@@ -3,8 +3,7 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.alertas.models import Alerta
-from apps.paises.models import Pais
+from apps.paises.models import Pais, TipoCambio
 from apps.paises.seed import crear_indicadores, crear_paises, crear_tipos_cambio
 from apps.portafolios.seed import crear_portafolios
 from apps.riesgo.models import IndiceRiesgo
@@ -32,24 +31,32 @@ PASSWORD_INICIAL = 'DataPulse2026!'
 
 
 class Command(BaseCommand):
-    help = 'Crea los datos iniciales de DataPulse Latam (usuarios, paises, indicadores, portafolios).'
+    help = (
+        'Crea los datos iniciales de DataPulse Latam (usuarios, paises, indicadores, portafolios). '
+        'Es idempotente sin borrar: si paises/indicadores/IRPC/alertas ya existen, no los '
+        'reescribe ni elimina, solo crea lo que falte.'
+    )
 
     def handle(self, *args, **options):
         self.crear_usuarios()
 
         crear_paises()
-        self.stdout.write('Paises creados')
+        self.stdout.write('Paises creados (o ya existian)')
 
         crear_indicadores()
-        self.stdout.write('Indicadores economicos creados (5 anios por pais)')
+        self.stdout.write('Indicadores economicos creados (solo los que faltaban, 5 anios por pais)')
 
-        crear_tipos_cambio()
-        self.stdout.write('Historico de tipo de cambio creado (30 dias)')
+        if TipoCambio.objects.exists():
+            self.stdout.write('Historico de tipo de cambio ya existia, no se toca')
+        else:
+            crear_tipos_cambio()
+            self.stdout.write('Historico de tipo de cambio creado (30 dias)')
 
-        IndiceRiesgo.objects.all().delete()
-        Alerta.objects.all().delete()
-        self.sembrar_historico_irpc()
-        self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises (3 fechas por pais)')
+        if IndiceRiesgo.objects.exists():
+            self.stdout.write('Indice de riesgo (IRPC) ya existia, no se recalcula')
+        else:
+            self.sembrar_historico_irpc()
+            self.stdout.write('Indice de riesgo (IRPC) calculado para los 10 paises (3 fechas por pais)')
 
         crear_portafolios()
         self.stdout.write('Portafolios de ejemplo creados')

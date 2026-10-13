@@ -130,18 +130,21 @@ def crear_indicadores():
         for fila in anios:
             anio = fila[0]
             for tipo, valor in zip(tipos_por_posicion, fila[1:]):
-                IndicadorEconomico.objects.update_or_create(
+                # get_or_create (no update_or_create): si el dato ya existe -por ejemplo
+                # porque "Sincronizar indicadores" ya trajo el valor real de World Bank-
+                # no se reescribe con el valor ilustrativo del seed.
+                IndicadorEconomico.objects.get_or_create(
                     pais=pais, tipo=tipo, anio=anio,
                     defaults={'valor': valor, 'unidad': unidades_por_tipo[tipo], 'fuente': IndicadorEconomico.Fuente.MANUAL},
                 )
 
 
 def crear_tipos_cambio():
+    """Solo se debe llamar si TipoCambio esta vacia (ver seed_data): la serie se simula
+    como una caminata aleatoria encadenada dia a dia, asi que no tiene sentido
+    completar huecos sueltos sin reescribir lo ya sembrado."""
     aleatorio = random.Random(42)
     hoy = timezone.now().date()
-    fecha_minima = hoy - timedelta(days=DIAS_HISTORICO - 1)
-
-    TipoCambio.objects.filter(fecha__lt=fecha_minima).delete()
 
     for moneda_codigo, base in TASAS_BASE.items():
         pais = Pais.objects.get(moneda_codigo=moneda_codigo)
@@ -160,7 +163,7 @@ def crear_tipos_cambio():
             if tasa_anterior:
                 variacion = (tasa - tasa_anterior) / tasa_anterior * 100
 
-            TipoCambio.objects.update_or_create(
+            TipoCambio.objects.get_or_create(
                 moneda_origen=pais, fecha=fecha,
                 defaults={
                     'moneda_destino': 'USD', 'tasa': round(tasa, 6),
