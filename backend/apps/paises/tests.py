@@ -5,6 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.riesgo.models import IndiceRiesgo
 from apps.usuarios.models import Usuario
 
 from .models import IndicadorEconomico, Pais, TipoCambio
@@ -79,6 +80,17 @@ class SincronizarIndicadoresTests(TestCase):
         self.assertTrue(IndicadorEconomico.objects.filter(pais=self.pais, anio=2023).exists())
         # Una sola llamada por indicador (6), ya no una por pais x indicador.
         self.assertEqual(mock_get.call_count, 6)
+
+    @patch('apps.paises.services.requests.get')
+    def test_recalcula_el_irpc_de_todos_los_paises_al_terminar(self, mock_get):
+        crear_pais(codigo_iso='BR', nombre='Brasil', moneda_codigo='BRL')
+        mock_get.return_value = _respuesta_world_bank([{'date': '2023', 'value': 9.2, 'country': {'id': 'CO'}}])
+
+        resultado = sincronizar_indicadores()
+
+        self.assertEqual(resultado['paises_irpc_recalculados'], 2)
+        self.assertEqual(IndiceRiesgo.objects.filter(pais=self.pais).count(), 1)
+        self.assertEqual(IndiceRiesgo.objects.count(), 2)
 
     @patch('apps.paises.services.requests.get')
     def test_un_pais_cuenta_como_actualizado_si_al_menos_un_indicador_tiene_su_dato(self, mock_get):

@@ -4,10 +4,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 
 import { IndiceRiesgo } from '../../../core/services/riesgo.service';
+import { ColorRiesgoDirective } from '../../../shared/directives/color-riesgo.directive';
 
 @Component({
   selector: 'app-tabla-ranking',
-  imports: [DecimalPipe, MatIconModule, MatTableModule],
+  imports: [DecimalPipe, MatIconModule, MatTableModule, ColorRiesgoDirective],
   templateUrl: './tabla-ranking.html',
   styleUrl: './tabla-ranking.scss',
 })

@@ -9,5 +9,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         resultado = sincronizar_indicadores()
         self.stdout.write(f"Paises procesados: {', '.join(resultado['paises_procesados'])}")
+        self.stdout.write(f"IRPC recalculado para {resultado['paises_irpc_recalculados']} paises")
         if resultado['errores']:
             self.stdout.write(self.style.WARNING(f"Errores: {resultado['errores']}"))

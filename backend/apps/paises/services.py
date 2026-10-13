@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.alertas.services import evaluar_alerta_tipo_cambio, generar_alertas_sincronizacion
+from apps.riesgo.services import calcular_irpc_todos
 
 from .models import IndicadorEconomico, Pais, TipoCambio
 
@@ -98,10 +99,16 @@ def sincronizar_indicadores():
         len(paises_procesados), len(indicadores_con_error),
     )
     generar_alertas_sincronizacion(paises_procesados)
+
+    # El IRPC depende de los indicadores recien sincronizados, asi que se recalcula
+    # solo al terminar en vez de requerir un segundo paso manual del admin.
+    irpc_recalculados = calcular_irpc_todos()
+
     return {
         'paises_procesados': paises_procesados,
         'indicadores_con_error': indicadores_con_error,
         'errores': errores,
+        'paises_irpc_recalculados': len(irpc_recalculados),
     }
 
 
